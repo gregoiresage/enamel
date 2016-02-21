@@ -1,0 +1,234 @@
+#include <pebble.h>
+#include "{{ filename }}.h"
+
+{% macro item_accessors_code(item) %}
+{% if 'appKey' in item %}
+{% if item['type'] == 'toggle' %}
+bool _{{ item|getid|cvarname }};
+bool get{{ item|getid|cvarname|capitalize }}(){
+	return _{{ item|getid|cvarname }};
+}
+void set{{ item|getid|cvarname|capitalize }}(bool value){
+	_{{ item|getid|cvarname }} = value;
+}
+{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
+{% if item['options'][0]['value'] is string %}
+char* _{{ item|getid|cvarname }}; 
+char* get{{ item|getid|cvarname| capitalize }}(){
+	return _{{ item|getid|cvarname }};
+}
+void set{{ item|getid|cvarname | capitalize }}(char* value){
+	if(_{{ item|getid|cvarname }}) free( _{{ item|getid|cvarname }});
+	uint32_t size = strlen(value);
+	_{{ item|getid|cvarname }} = malloc(size + 1);
+	_{{ item|getid|cvarname }}[size] = 0;
+	strncpy(_{{ item|getid|cvarname }}, value, size);
+}
+{% else %}
+{{ item|getid|cvarname|capitalize }}Value _{{ item|getid|cvarname }};
+{{ item|getid|cvarname|capitalize }}Value get{{ item|getid|cvarname| capitalize }}(){
+	return _{{ item|getid|cvarname }};
+}
+void set{{ item|getid|cvarname | capitalize }}(
+	{{ item|getid|cvarname|capitalize }}Value value){_{{ item|getid|cvarname }} = value;
+}
+{% endif %}
+{% elif item['type'] == 'input' %}
+char* _{{ item|getid|cvarname }}; 
+char* get{{ item|getid|cvarname| capitalize }}(){
+	return _{{ item|getid|cvarname }};
+}
+void set{{ item|getid|cvarname | capitalize }}(char* value){
+	if(_{{ item|getid|cvarname }}) free( _{{ item|getid|cvarname }});
+	uint32_t size = strlen(value);
+	_{{ item|getid|cvarname }} = malloc(size + 1);
+	_{{ item|getid|cvarname }}[size] = 0;
+	strncpy(_{{ item|getid|cvarname }}, value, size);
+}
+{% elif item['type'] == 'color' %}
+GColor _{{ item|getid|cvarname }};
+GColor get{{ item|getid|cvarname| capitalize }}(){
+	return _{{ item|getid|cvarname }};
+}
+void set{{ item|getid|cvarname | capitalize }}(uint8_t value){
+	_{{ item|getid|cvarname }}.argb = value;
+}
+{% else %}
+int32_t _{{ item|getid|cvarname }};
+int32_t get{{ item|getid|cvarname| capitalize }}(){
+	return _{{ item|getid|cvarname }};
+}
+void set{{ item|getid|cvarname | capitalize}}(int32_t value){
+	_{{ item|getid|cvarname }} = value;
+}
+{% endif %}
+{% endif %}
+{%- endmacro %}
+
+{% for item in config %}
+{% if item['type'] == 'section' %}
+{% for item in item['items'] %}
+{{ item_accessors_code(item) }}
+{% endfor %}
+{% else %}
+{{ item_accessors_code(item) }}
+{% endif %}
+{% endfor %}
+
+{% macro item_hoven_in_received_handler(item) %}
+{% if 'appKey' in item %}
+	tuple = dict_find(iter, {{ item|getid|cvarname|upper }}_PKEY);
+	{% if item['type'] == 'input' %}
+	tuple ? set{{ item|getid|cvarname|capitalize }}(tuple->value->cstring) : false;
+	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
+	{% if item['options'][0]['value'] is string %}
+	tuple ? set{{ item|getid|cvarname|capitalize }}(tuple->value->cstring) : false;
+	{% else %}
+	tuple ? set{{ item|getid|cvarname|capitalize }}(atoi(tuple->value->cstring)) : false;
+	{% endif %}
+	{% elif item['type'] == 'color' %}
+	tuple ? set{{ item|getid|cvarname|capitalize }}(GColorFromHEX(tuple->value->int32).argb) : false;
+	{% else %}
+	tuple ? set{{ item|getid|cvarname|capitalize }}(tuple->value->int32) : false;
+	{% endif %}
+{% endif %}
+{% endmacro %}
+
+void {{ filename }}_in_received_handler(DictionaryIterator *iter, void *context) {
+	Tuple *tuple = NULL;
+{% for item in config %}
+{% if item['type'] == 'section' %}
+{% for item in item['items'] %}
+{{ item_hoven_in_received_handler(item) }}
+{% endfor %}
+{% else %}
+{{ item_hoven_in_received_handler(item) }}
+{% endif %}
+{% endfor %}
+}
+
+{% macro item_hoven_init(item) %}
+{% if 'appKey' in item %}
+	if (persist_exists({{ item|getid|cvarname|upper }}_PKEY)) {
+		{% if item['type'] == 'input' %}
+		char tmp[100];
+		memset(tmp, 0, 100);
+		persist_read_string({{ item|getid|cvarname|upper }}_PKEY, tmp, 100);
+		set{{ item|getid|cvarname|capitalize }}(tmp);
+		{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
+		{% if item['options'][0]['value'] is string %}
+		char tmp[100];
+		memset(tmp, 0, 100);
+		persist_read_string({{ item|getid|cvarname|upper }}_PKEY, tmp, 100);
+		set{{ item|getid|cvarname|capitalize }}(tmp);
+		{% else %}
+		set{{ item|getid|cvarname|capitalize }}(persist_read_int({{ item|getid|cvarname|upper }}_PKEY));
+		{% endif %}
+		{% elif item['type'] == 'toggle' %}
+		set{{ item|getid|cvarname|capitalize }}(persist_read_bool({{ item|getid|cvarname|upper }}_PKEY));
+		{% else %}
+		set{{ item|getid|cvarname|capitalize }}(persist_read_int({{ item|getid|cvarname|upper }}_PKEY));
+		{% endif %}
+	}
+	{% if 'defaultValue' in item %}
+	else {
+		{% if item['type'] == 'input' %}
+		set{{ item|getid|cvarname | capitalize }}("{{item['defaultValue']}}");
+		{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
+		{% if item['options'][0]['value'] is string %}
+		set{{ item|getid|cvarname | capitalize }}("{{item['defaultValue']}}");
+		{% else %}
+		set{{ item|getid|cvarname | capitalize }}({{item['defaultValue']}});
+		{% endif %}
+		{% elif item['type'] == 'color' %}
+		{% if item['defaultValue'] is string %}
+		set{{ item|getid|cvarname | capitalize }}(GColorFromHEX(0x{{item['defaultValue']}}).argb);
+		{% else %}
+		set{{ item|getid|cvarname | capitalize }}(GColorFromHEX({{item['defaultValue']}}).argb);
+		{% endif %}
+		{% else %}
+		set{{ item|getid|cvarname | capitalize }}({{item['defaultValue']|lower}});
+		{% endif %}
+	}
+	{% endif %}
+{% endif %}
+{% endmacro %}
+
+{% macro item_dict_size(item) %}
+	{% if item['type'] == 'input' %}
+		100
+	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
+	{% if item['options'][0]['value'] is string %}
+		100
+	{% else %}
+		4
+	{% endif %}
+	{% else %}
+		4
+	{% endif %}
+{% endmacro %}
+
+void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbound){
+	app_message_register_inbox_received({{ filename }}_in_received_handler);
+
+	if(size_inbound == 0) {
+		app_message_open(1
+		{% for item in config %}
+		{% if item['type'] == 'section' %}
+		{% for item in item['items'] %}
+		+7+{{ item_dict_size(item) }}
+		{% endfor %}
+		{% else %}
+		+7+{{ item_dict_size(item) }}
+		{% endif %}
+		{% endfor %}
+		, size_outbound);
+	}
+	else {
+		app_message_open(size_inbound, size_outbound);
+	}
+	
+{% for item in config %}
+{% if item['type'] == 'section' %}
+{% for item in item['items'] %}
+{{ item_hoven_init(item) }}
+{% endfor %}
+{% else %}
+{{ item_hoven_init(item) }}
+{% endif %}
+{% endfor %}
+}
+
+{% macro item_hoven_deinit(item) %}
+{% if 'appKey' in item %}
+	{% if item['type'] == 'input' %}
+	persist_write_string({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }});
+	if(_{{ item|getid|cvarname }}) free(_{{ item|getid|cvarname }});
+	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
+	{% if item['options'][0]['value'] is string %}
+	persist_write_string({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }});
+	if(_{{ item|getid|cvarname }}) free(_{{ item|getid|cvarname }});
+	{% else %}
+	persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }} ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
+	{% endif %}
+	{% elif item['type'] == 'toggle' %}
+	persist_read_bool({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }} ? persist_write_bool({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
+	{% elif item['type'] == 'color' %}
+	persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }}.argb ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}.argb) : false;
+	{% else %}
+	persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }} ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
+	{% endif %}
+{% endif %}
+{% endmacro %}
+
+void {{ filename }}_deinit(){
+{% for item in config %}
+{% if item['type'] == 'section' %}
+{% for item in item['items'] %}
+{{ item_hoven_deinit(item) }}
+{% endfor %}
+{% else %}
+{{ item_hoven_deinit(item) }}
+{% endif %}
+{% endfor %}
+}

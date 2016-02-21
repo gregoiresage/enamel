@@ -1,0 +1,48 @@
+#ifndef {{ filename }}_h
+#define {{ filename }}_h
+
+#include <pebble.h>
+
+{% macro item_header(item) %}
+{% if 'appKey' in item %}
+#define {{ item|getid|cvarname|upper }}_PKEY {{ appinfo['appKeys'][item['appKey']] }}
+{% if item['type'] == 'select' or item['type'] == 'radiogroup' %}
+{% if item['options'][0]['value'] is string %}
+char* get{{ item|getid|cvarname|capitalize }}();
+{% else %}
+typedef enum {
+{% for option in item['options']: %}
+	{{ item|getid|cvarname|upper }}_{{ option['label']|cvarname|upper }} = {{ option['value'] }},
+{% endfor %}
+} {{ item|getid|cvarname|capitalize }}Value;
+{{ item|getid|cvarname|capitalize }}Value get{{ item|getid|cvarname|capitalize }}();
+{% endif %}
+{% elif item['type'] == 'toggle' %}
+bool get{{ item|getid|cvarname|capitalize }}();
+{% elif item['type'] == 'input' %}
+char* get{{ item|getid|cvarname|capitalize }}();
+{% elif item['type'] == 'color' %}
+GColor get{{ item|getid|cvarname|capitalize }}();
+{% else %}
+int32_t get{{ item|getid|cvarname|capitalize }}();
+{% endif %}
+{% endif %}
+{% endmacro %}
+
+{% for item in config %}
+{% if item['type'] == 'section' %}
+{% for item in item['items'] %}
+{{ item_header(item) }}
+{% endfor %}
+{% else %}
+{{ item_header(item) }}
+{% endif %}
+{% endfor %}
+
+void {{ filename }}_in_received_handler(DictionaryIterator *iter, void *context); 
+
+void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbound);
+
+void {{ filename }}_deinit();
+
+#endif

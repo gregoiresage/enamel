@@ -1,0 +1,23 @@
+[
+{ "type": "heading", "defaultValue": "Enamel Demo" },
+{
+  "type": "section",
+  "items": [
+    {
+      "type": "toggle",
+      "id": "enableBackground",
+      "appKey": "enableBackground",
+      "label": "Enable Background"
+    },
+    {
+      "type": "color",
+      "id": "background",
+      "appKey": "background",
+      "defaultValue": "FF0000",
+      "label": "Background Color",
+      "sunlight": true
+    }
+  ]
+},
+{ "type": "submit", "defaultValue": "Done" }
+]
