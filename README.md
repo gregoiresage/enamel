@@ -1,1 +1,169 @@
-# enamel
+# Enamel
+Enamel is a python script that generates C helpers from a [Clay](https://github.com/pebble/clay) configuration file to easily get the value of your settings.
+
+Enamel will :
+* handle AppMessages automatically (app_message_open, handler registration, ...)
+* save/load the value of the settings in the persistant storage automatically
+* provide a getter for each of your settings
+
+---
+
+# Getting Started (pebble wscript)
+1. You project must contain a valid configuration file in `src/js/config.json` (see https://github.com/pebble/clay)
+2. Extract [Enamel](https://github.com/gregoiresage/enamel/archive/develop.zip) at the root of your Pebble project or create a git submodule
+3. Copy and paste the following line into the top of your `wscript` : 
+  
+  ``` python
+  from enamel import enamel
+  ```
+4. Change the `build` of your wscript from 
+
+  ``` python
+  ctx.pbl_program(source=ctx.path.ant_glob('src/**/*.c'), target=app_elf)
+  ```
+  to
+  ``` python
+  ctx(rule = enamel, source='src/js/config.json', target=['enamel.c', 'enamel.h'])
+  ctx.pbl_program(source=ctx.path.ant_glob('src/**/*.c') + ['enamel.c'], target=app_elf)
+  ```
+5. Launch your Pebble build : 2 files (enamel.c and enamel.h) should be generated in `build` and compiled
+
+# Getting Started (python)
+The following command will generate 2 files (enamel.c and enamel.h) in `src/generated`, you just need to copy them in your project
+```
+python enamel.py --appinfo /path/to/your/appinfo.json --config /path/to/your/config.json 
+```
+
+Call `python enamel.py --help` for help
+
+---
+
+# Using Enamel
+1. Setup your project correctly for Clay : https://github.com/pebble/clay
+2. Include `enamel.h` in your c file : 
+  
+  ``` c
+  #include "enamel.h"
+  ```
+3. Initialize enamel in your `init` function : 
+  
+  ``` c
+  static void init(void) {
+    // Initialize Enamel to register App Message handlers and restores settings
+    enamel_init(0, 0);
+    
+    ...
+  }
+  ```
+4. Deinitialize enamel in your `deinit` function :
+  
+  ``` c
+  static void deinit(void) {
+    ...
+  
+    // Deinit Enamel to unregister App Message handlers and save settings
+    enamel_deinit();
+  }
+  ```
+5. (Optional) Register a custom `in_received_handler` in your `init`. This handler will be automatically called by enamel when a setting is received.
+
+  ``` c
+  static void in_received_handler(DictionaryIterator *iter, void *context) {
+    APP_LOG(0, "Settings received %d", get_myinteger());
+    window_set_background_color(window, get_background());
+    // do what you want here 
+    // you will probably udpate your textlayers, colors, ... with the new settings
+    // and mark your layers dirty
+  }
+  
+  ...
+  
+  static void init(void) {
+    // Initialize Enamel to register App Message handlers and restores settings
+    enamel_init(0, 0);
+
+    // Register our custom receive handler
+    enamel_register_custom_inbox_received(in_received_handler);
+    
+    ...
+  }
+  ```
+6. Get the value of your setting with :
+  
+  ``` c
+  get_Mysetting(); // where 'Mysetting' is an appKey in your configuration file
+  ```
+
+---
+
+# Enamel API
+
+## Methods
+
+| Method | Description |
+|--------|---------|
+| `void enamel_init(const uint32_t size_inbound, const uint32_t size_outbound)` | Initialize Enamel. <br>If `size_inbound` is `0`, Enamel will calculate the inbound size automatically for you |
+| `void enamel_deinit()` | Deinitialize Enamel and save the settings in the persistant storage |
+| `void enamel_register_custom_inbox_received( AppMessageInboxReceived received_callback )` | Register a custom received callback called when a setting is received |
+| `<type> get_appKeyId()` | Return the value for the setting `appKeyId` |
+
+## Type mapping
+
+| Clay Type | Type returned by the getter |
+|--------|---------|
+| `heading/text/input` | `char*` |
+| `toggle` | `bool` |
+| `color` | `GColor` |
+| `select/radiogroup` | `char*` or `enum` |
+| `checkboxgroup` | not supported |
+
+### Special case for `select` and `radiogroup`
+
+If the value of the options are `string` in the `config.json, Enamel will generate a `char*` getter
+
+If the value of the options are `integer`, Enamel will generate an `enum` mapping all the possible values for this setting and the getter will return this `enum`
+
+For the given setting :
+``` json
+{
+  "type": "radiogroup",
+  "appKey": "favorite_food",
+  "label": "Favorite Food",
+  "defaultValue": "1",
+  "options": [
+    { 
+      "label": "Sushi", 
+      "value": 0 
+    },
+    { 
+      "label": "Pizza", 
+      "value": 1 
+    },
+    { 
+      "label": "Burgers", 
+      "value": 2 
+    }
+  ]
+}
+```
+
+Enamel will generate
+
+``` c
+typedef enum {
+	FAVORITE_FOOD_SUSHI = 0,
+	FAVORITE_FOOD_PIZZA = 1,
+	FAVORITE_FOOD_BURGER = 2,
+} FAVORITE_FOODValue;
+FAVORITE_FOODValue get_favorite_food();
+```
+
+You can then easily code switch case for this setting
+``` c
+switch(get_favorite_food()){
+ case FAVORITE_FOOD_SUSHI : break; //do something
+ case FAVORITE_FOOD_PIZZA : break; //do something
+ case FAVORITE_FOOD_BURGER : break; //do something
+}
+```
+
