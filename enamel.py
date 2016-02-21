@@ -2,8 +2,20 @@ import os
 import json
 import collections
 import re
-from jinja2 import Environment
-from jinja2 import FileSystemLoader
+import sys
+
+try:
+    from jinja2 import Environment
+    from jinja2 import FileSystemLoader
+except ImportError as e:
+    if 'pebble-sdk' in sys.prefix :
+        message = 'Jinja2 module is missing, you probably forgot to patch your current sdk\n'
+        message += 'Fix the problem by executing the following command and relaunch your build:\n\n'
+        message += 'pip install --target=%s/lib/python2.7/site-packages/ -r %s/requirements.txt\n' % (sys.prefix, os.path.dirname(os.path.abspath(__file__)))
+        print message
+        sys.exit(-1)
+    else :
+        raise e
 
 def cvarname(name):
     """Convert a string to a valid c variable name (remove space,commas,slashes/...)."""
