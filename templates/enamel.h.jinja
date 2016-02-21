@@ -3,6 +3,10 @@
 
 #include <pebble.h>
 
+#ifndef {{ filename|upper }}_MAX_STRING_LENGTH
+#define {{ filename|upper }}_MAX_STRING_LENGTH 30
+#endif
+
 {% macro item_header(item) %}
 {% if 'appKey' in item %}
 #define {{ item|getid|cvarname|upper }}_PKEY {{ appinfo['appKeys'][item['appKey']] }}
@@ -19,12 +23,14 @@ typedef enum {
 {% endif %}
 {% elif item['type'] == 'toggle' %}
 bool get{{ item|getid|cvarname|capitalize }}();
-{% elif item['type'] == 'input' %}
+{% elif item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
 char* get{{ item|getid|cvarname|capitalize }}();
 {% elif item['type'] == 'color' %}
 GColor get{{ item|getid|cvarname|capitalize }}();
+{% elif item['type'] == 'checkboxgroup' %}
+#pragma message "'checkboxgroup' is not yet supported"
 {% else %}
-int32_t get{{ item|getid|cvarname|capitalize }}();
+#error Unknown type '{{ item['type'] }}' for item '{{ item['appKey'] }}'
 {% endif %}
 {% endif %}
 {% endmacro %}
@@ -39,7 +45,7 @@ int32_t get{{ item|getid|cvarname|capitalize }}();
 {% endif %}
 {% endfor %}
 
-void {{ filename }}_in_received_handler(DictionaryIterator *iter, void *context); 
+void {{ filename }}_register_custom_inbox_received(AppMessageInboxReceived received_callback); 
 
 void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbound);
 

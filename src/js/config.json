@@ -1,8 +1,8 @@
 [
-{ "type": "heading", "defaultValue": "Enamel Demo" },
 {
   "type": "section",
   "items": [
+    { "type": "heading", "defaultValue": "Enamel Demo" },
     {
       "type": "toggle",
       "id": "enableBackground",
@@ -16,6 +16,27 @@
       "defaultValue": "FF0000",
       "label": "Background Color",
       "sunlight": true
+    },
+    {
+      "type": "select",
+      "id": "font_size",
+      "appKey": "font_size",
+      "defaultValue": "1",
+      "label": "Text Size",
+      "options": [
+        { 
+          "label": "Small", 
+          "value": 0
+        },
+        { 
+          "label": "Normal",
+          "value": 1 
+        },
+        { 
+          "label": "Large",
+          "value": 2 
+        }
+      ]
     }
   ]
 },

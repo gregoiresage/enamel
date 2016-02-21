@@ -1,6 +1,8 @@
 #include <pebble.h>
 #include "{{ filename }}.h"
 
+static AppMessageInboxReceived custom_received_callback; 
+
 {% macro item_accessors_code(item) %}
 {% if 'appKey' in item %}
 {% if item['type'] == 'toggle' %}
@@ -33,7 +35,7 @@ void set{{ item|getid|cvarname | capitalize }}(
 	{{ item|getid|cvarname|capitalize }}Value value){_{{ item|getid|cvarname }} = value;
 }
 {% endif %}
-{% elif item['type'] == 'input' %}
+{% elif item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
 char* _{{ item|getid|cvarname }}; 
 char* get{{ item|getid|cvarname| capitalize }}(){
 	return _{{ item|getid|cvarname }};
@@ -53,14 +55,8 @@ GColor get{{ item|getid|cvarname| capitalize }}(){
 void set{{ item|getid|cvarname | capitalize }}(uint8_t value){
 	_{{ item|getid|cvarname }}.argb = value;
 }
-{% else %}
-int32_t _{{ item|getid|cvarname }};
-int32_t get{{ item|getid|cvarname| capitalize }}(){
-	return _{{ item|getid|cvarname }};
-}
-void set{{ item|getid|cvarname | capitalize}}(int32_t value){
-	_{{ item|getid|cvarname }} = value;
-}
+{% elif item['type'] == 'checkboxgroup' %}
+#pragma message "'checkboxgroup' is not yet supported"
 {% endif %}
 {% endif %}
 {%- endmacro %}
@@ -75,10 +71,10 @@ void set{{ item|getid|cvarname | capitalize}}(int32_t value){
 {% endif %}
 {% endfor %}
 
-{% macro item_hoven_in_received_handler(item) %}
+{% macro item_in_received_handler(item) %}
 {% if 'appKey' in item %}
 	tuple = dict_find(iter, {{ item|getid|cvarname|upper }}_PKEY);
-	{% if item['type'] == 'input' %}
+	{% if item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
 	tuple ? set{{ item|getid|cvarname|capitalize }}(tuple->value->cstring) : false;
 	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 	{% if item['options'][0]['value'] is string %}
@@ -88,51 +84,58 @@ void set{{ item|getid|cvarname | capitalize}}(int32_t value){
 	{% endif %}
 	{% elif item['type'] == 'color' %}
 	tuple ? set{{ item|getid|cvarname|capitalize }}(GColorFromHEX(tuple->value->int32).argb) : false;
-	{% else %}
+	{% elif item['type'] == 'toggle' %}
 	tuple ? set{{ item|getid|cvarname|capitalize }}(tuple->value->int32) : false;
+	{% elif item['type'] == 'checkboxgroup' %}
+	#pragma message "'checkboxgroup' is not yet supported"
 	{% endif %}
 {% endif %}
 {% endmacro %}
 
-void {{ filename }}_in_received_handler(DictionaryIterator *iter, void *context) {
+static void in_received_handler(DictionaryIterator *iter, void *context) {
 	Tuple *tuple = NULL;
 {% for item in config %}
 {% if item['type'] == 'section' %}
 {% for item in item['items'] %}
-{{ item_hoven_in_received_handler(item) }}
+{{ item_in_received_handler(item) }}
 {% endfor %}
 {% else %}
-{{ item_hoven_in_received_handler(item) }}
+{{ item_in_received_handler(item) }}
 {% endif %}
 {% endfor %}
+	if(custom_received_callback) {
+		custom_received_callback(iter, context);
+	}
 }
 
-{% macro item_hoven_init(item) %}
+{% macro item_init(item) %}
 {% if 'appKey' in item %}
 	if (persist_exists({{ item|getid|cvarname|upper }}_PKEY)) {
-		{% if item['type'] == 'input' %}
-		char tmp[100];
-		memset(tmp, 0, 100);
-		persist_read_string({{ item|getid|cvarname|upper }}_PKEY, tmp, 100);
+		{% if item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
+		char tmp[{{ filename|upper }}_MAX_STRING_LENGTH];
+		memset(tmp, 0, {{ filename|upper }}_MAX_STRING_LENGTH);
+		persist_read_string({{ item|getid|cvarname|upper }}_PKEY, tmp, {{ filename|upper }}_MAX_STRING_LENGTH);
 		set{{ item|getid|cvarname|capitalize }}(tmp);
 		{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 		{% if item['options'][0]['value'] is string %}
-		char tmp[100];
-		memset(tmp, 0, 100);
-		persist_read_string({{ item|getid|cvarname|upper }}_PKEY, tmp, 100);
+		char tmp[{{ filename|upper }}_MAX_STRING_LENGTH];
+		memset(tmp, 0, {{ filename|upper }}_MAX_STRING_LENGTH);
+		persist_read_string({{ item|getid|cvarname|upper }}_PKEY, tmp, {{ filename|upper }}_MAX_STRING_LENGTH);
 		set{{ item|getid|cvarname|capitalize }}(tmp);
 		{% else %}
 		set{{ item|getid|cvarname|capitalize }}(persist_read_int({{ item|getid|cvarname|upper }}_PKEY));
 		{% endif %}
+		{% elif item['type'] == 'color' %}
+		set{{ item|getid|cvarname|capitalize }}(persist_read_int({{ item|getid|cvarname|upper }}_PKEY));
 		{% elif item['type'] == 'toggle' %}
 		set{{ item|getid|cvarname|capitalize }}(persist_read_bool({{ item|getid|cvarname|upper }}_PKEY));
-		{% else %}
-		set{{ item|getid|cvarname|capitalize }}(persist_read_int({{ item|getid|cvarname|upper }}_PKEY));
+		{% elif item['type'] == 'checkboxgroup' %}
+		#pragma message "'checkboxgroup' is not yet supported"
 		{% endif %}
 	}
 	{% if 'defaultValue' in item %}
 	else {
-		{% if item['type'] == 'input' %}
+		{% if item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
 		set{{ item|getid|cvarname | capitalize }}("{{item['defaultValue']}}");
 		{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 		{% if item['options'][0]['value'] is string %}
@@ -146,8 +149,10 @@ void {{ filename }}_in_received_handler(DictionaryIterator *iter, void *context)
 		{% else %}
 		set{{ item|getid|cvarname | capitalize }}(GColorFromHEX({{item['defaultValue']}}).argb);
 		{% endif %}
-		{% else %}
+		{% elif item['type'] == 'toggle' %}
 		set{{ item|getid|cvarname | capitalize }}({{item['defaultValue']|lower}});
+		{% elif item['type'] == 'checkboxgroup' %}
+		#pragma message "'checkboxgroup' is not yet supported"
 		{% endif %}
 	}
 	{% endif %}
@@ -155,11 +160,11 @@ void {{ filename }}_in_received_handler(DictionaryIterator *iter, void *context)
 {% endmacro %}
 
 {% macro item_dict_size(item) %}
-	{% if item['type'] == 'input' %}
-		100
+	{% if item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
+		{{ filename|upper }}_MAX_STRING_LENGTH
 	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 	{% if item['options'][0]['value'] is string %}
-		100
+		{{ filename|upper }}_MAX_STRING_LENGTH
 	{% else %}
 		4
 	{% endif %}
@@ -169,7 +174,8 @@ void {{ filename }}_in_received_handler(DictionaryIterator *iter, void *context)
 {% endmacro %}
 
 void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbound){
-	app_message_register_inbox_received({{ filename }}_in_received_handler);
+	custom_received_callback = NULL;
+	app_message_register_inbox_received(in_received_handler);
 
 	if(size_inbound == 0) {
 		app_message_open(1
@@ -191,17 +197,17 @@ void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbou
 {% for item in config %}
 {% if item['type'] == 'section' %}
 {% for item in item['items'] %}
-{{ item_hoven_init(item) }}
+{{ item_init(item) }}
 {% endfor %}
 {% else %}
-{{ item_hoven_init(item) }}
+{{ item_init(item) }}
 {% endif %}
 {% endfor %}
 }
 
-{% macro item_hoven_deinit(item) %}
+{% macro item_deinit(item) %}
 {% if 'appKey' in item %}
-	{% if item['type'] == 'input' %}
+	{% if item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
 	persist_write_string({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }});
 	if(_{{ item|getid|cvarname }}) free(_{{ item|getid|cvarname }});
 	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
@@ -215,8 +221,8 @@ void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbou
 	persist_read_bool({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }} ? persist_write_bool({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
 	{% elif item['type'] == 'color' %}
 	persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }}.argb ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}.argb) : false;
-	{% else %}
-	persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }} ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
+	{% elif item['type'] == 'checkboxgroup' %}
+	#pragma message "'checkboxgroup' is not yet supported"
 	{% endif %}
 {% endif %}
 {% endmacro %}
@@ -225,10 +231,16 @@ void {{ filename }}_deinit(){
 {% for item in config %}
 {% if item['type'] == 'section' %}
 {% for item in item['items'] %}
-{{ item_hoven_deinit(item) }}
+{{ item_deinit(item) }}
 {% endfor %}
 {% else %}
-{{ item_hoven_deinit(item) }}
+{{ item_deinit(item) }}
 {% endif %}
 {% endfor %}
+	app_message_deregister_callbacks();
+	custom_received_callback = NULL;
+}
+
+void {{ filename }}_register_custom_inbox_received(AppMessageInboxReceived received_callback) {
+	custom_received_callback = received_callback;
 }
