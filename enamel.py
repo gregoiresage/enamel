@@ -20,7 +20,7 @@ def generate(appinfo='appinfo.json', configFile='src/js/config.json', outputDir=
         os.makedirs(outputDir)
 
     # crete jinja environment
-    env = Environment(loader = FileSystemLoader(['templates']), trim_blocks=True, lstrip_blocks=True)
+    env = Environment(loader = FileSystemLoader([os.path.join(os.path.dirname(__file__), 'templates')]), trim_blocks=True, lstrip_blocks=True)
 
     # add custom filters
     env.filters['cvarname'] = cvarname
