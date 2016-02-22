@@ -54,7 +54,7 @@ def generate(appinfo='appinfo.json', configFile='src/js/config.json', outputDir=
         f.close()
 
 def enamel(task):
-    generate(configFile=task.inputs[0].abspath(), outputDir=task.generator.bld.bldnode.abspath())
+    generate(configFile=task.inputs[0].abspath(), outputDir=task.generator.bld.bldnode.abspath(), outputFileName=os.path.splitext(os.path.basename(task.outputs[0].abspath()))[0])
 
 import argparse
 if __name__ == '__main__':
