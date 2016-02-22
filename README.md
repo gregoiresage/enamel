@@ -14,7 +14,7 @@ Enamel will :
 3. Copy and paste the following line into the top of your `wscript` : 
   
   ``` python
-  from enamel import enamel
+  from enamel.enamel import enamel
   ```
 4. Change the `build` of your wscript from 
 
@@ -29,6 +29,7 @@ Enamel will :
 5. Launch your Pebble build : 2 files (enamel.c and enamel.h) should be generated in `build` and compiled
 
 # Getting Started (python)
+If you can't modify the wscript (Cloudpebble development) you can call directly the python script.<br>
 The following command will generate 2 files (enamel.c and enamel.h) in `src/generated`, you just need to copy them in your project
 ```
 python enamel.py --appinfo /path/to/your/appinfo.json --config /path/to/your/config.json 
@@ -65,7 +66,7 @@ Call `python enamel.py --help` for help
     enamel_deinit();
   }
   ```
-5. (Optional) Register a custom `in_received_handler` in your `init`. This handler will be automatically called by enamel when a setting is received.
+5. (Optional) Register a custom `in_received_handler` in your `init`. <br>This handler will be automatically called by enamel when a setting is received.
 
   ``` c
   static void in_received_handler(DictionaryIterator *iter, void *context) {
