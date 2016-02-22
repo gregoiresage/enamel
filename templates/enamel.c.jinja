@@ -7,19 +7,19 @@ static AppMessageInboxReceived custom_received_callback;
 {% if 'appKey' in item %}
 {% if item['type'] == 'toggle' %}
 bool _{{ item|getid|cvarname }};
-bool get{{ item|getid|cvarname|capitalize }}(){
+bool get_{{ item|getid|cvarname }}(){
 	return _{{ item|getid|cvarname }};
 }
-void set{{ item|getid|cvarname|capitalize }}(bool value){
+void set_{{ item|getid|cvarname }}(bool value){
 	_{{ item|getid|cvarname }} = value;
 }
 {% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 {% if item['options'][0]['value'] is string %}
 char* _{{ item|getid|cvarname }}; 
-char* get{{ item|getid|cvarname| capitalize }}(){
+char* get_{{ item|getid|cvarname }}(){
 	return _{{ item|getid|cvarname }};
 }
-void set{{ item|getid|cvarname | capitalize }}(char* value){
+void set_{{ item|getid|cvarname }}(char* value){
 	if(_{{ item|getid|cvarname }}) free( _{{ item|getid|cvarname }});
 	uint32_t size = strlen(value);
 	_{{ item|getid|cvarname }} = malloc(size + 1);
@@ -27,20 +27,20 @@ void set{{ item|getid|cvarname | capitalize }}(char* value){
 	strncpy(_{{ item|getid|cvarname }}, value, size);
 }
 {% else %}
-{{ item|getid|cvarname|capitalize }}Value _{{ item|getid|cvarname }};
-{{ item|getid|cvarname|capitalize }}Value get{{ item|getid|cvarname| capitalize }}(){
+{{ item|getid|cvarname|upper }}Value _{{ item|getid|cvarname }};
+{{ item|getid|cvarname|upper }}Value get_{{ item|getid|cvarname }}(){
 	return _{{ item|getid|cvarname }};
 }
-void set{{ item|getid|cvarname | capitalize }}(
-	{{ item|getid|cvarname|capitalize }}Value value){_{{ item|getid|cvarname }} = value;
+void set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Value value){
+	_{{ item|getid|cvarname }} = value;
 }
 {% endif %}
 {% elif item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
 char* _{{ item|getid|cvarname }}; 
-char* get{{ item|getid|cvarname| capitalize }}(){
+char* get_{{ item|getid|cvarname }}(){
 	return _{{ item|getid|cvarname }};
 }
-void set{{ item|getid|cvarname | capitalize }}(char* value){
+void set_{{ item|getid|cvarname }}(char* value){
 	if(_{{ item|getid|cvarname }}) free( _{{ item|getid|cvarname }});
 	uint32_t size = strlen(value);
 	_{{ item|getid|cvarname }} = malloc(size + 1);
@@ -49,10 +49,10 @@ void set{{ item|getid|cvarname | capitalize }}(char* value){
 }
 {% elif item['type'] == 'color' %}
 GColor _{{ item|getid|cvarname }};
-GColor get{{ item|getid|cvarname| capitalize }}(){
+GColor get_{{ item|getid|cvarname }}(){
 	return _{{ item|getid|cvarname }};
 }
-void set{{ item|getid|cvarname | capitalize }}(uint8_t value){
+void set_{{ item|getid|cvarname }}(uint8_t value){
 	_{{ item|getid|cvarname }}.argb = value;
 }
 {% elif item['type'] == 'checkboxgroup' %}
@@ -75,17 +75,17 @@ void set{{ item|getid|cvarname | capitalize }}(uint8_t value){
 {% if 'appKey' in item %}
 	tuple = dict_find(iter, {{ item|getid|cvarname|upper }}_PKEY);
 	{% if item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
-	tuple ? set{{ item|getid|cvarname|capitalize }}(tuple->value->cstring) : false;
+	tuple ? set_{{ item|getid|cvarname }}(tuple->value->cstring) : false;
 	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 	{% if item['options'][0]['value'] is string %}
-	tuple ? set{{ item|getid|cvarname|capitalize }}(tuple->value->cstring) : false;
+	tuple ? set_{{ item|getid|cvarname }}(tuple->value->cstring) : false;
 	{% else %}
-	tuple ? set{{ item|getid|cvarname|capitalize }}(atoi(tuple->value->cstring)) : false;
+	tuple ? set_{{ item|getid|cvarname }}(atoi(tuple->value->cstring)) : false;
 	{% endif %}
 	{% elif item['type'] == 'color' %}
-	tuple ? set{{ item|getid|cvarname|capitalize }}(GColorFromHEX(tuple->value->int32).argb) : false;
+	tuple ? set_{{ item|getid|cvarname }}(GColorFromHEX(tuple->value->int32).argb) : false;
 	{% elif item['type'] == 'toggle' %}
-	tuple ? set{{ item|getid|cvarname|capitalize }}(tuple->value->int32) : false;
+	tuple ? set_{{ item|getid|cvarname }}(tuple->value->int32) : false;
 	{% elif item['type'] == 'checkboxgroup' %}
 	#pragma message "'checkboxgroup' is not yet supported"
 	{% endif %}
@@ -115,20 +115,20 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 		char tmp[{{ filename|upper }}_MAX_STRING_LENGTH];
 		memset(tmp, 0, {{ filename|upper }}_MAX_STRING_LENGTH);
 		persist_read_string({{ item|getid|cvarname|upper }}_PKEY, tmp, {{ filename|upper }}_MAX_STRING_LENGTH);
-		set{{ item|getid|cvarname|capitalize }}(tmp);
+		set_{{ item|getid|cvarname }}(tmp);
 		{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 		{% if item['options'][0]['value'] is string %}
 		char tmp[{{ filename|upper }}_MAX_STRING_LENGTH];
 		memset(tmp, 0, {{ filename|upper }}_MAX_STRING_LENGTH);
 		persist_read_string({{ item|getid|cvarname|upper }}_PKEY, tmp, {{ filename|upper }}_MAX_STRING_LENGTH);
-		set{{ item|getid|cvarname|capitalize }}(tmp);
+		set_{{ item|getid|cvarname }}(tmp);
 		{% else %}
-		set{{ item|getid|cvarname|capitalize }}(persist_read_int({{ item|getid|cvarname|upper }}_PKEY));
+		set_{{ item|getid|cvarname }}(persist_read_int({{ item|getid|cvarname|upper }}_PKEY));
 		{% endif %}
 		{% elif item['type'] == 'color' %}
-		set{{ item|getid|cvarname|capitalize }}(persist_read_int({{ item|getid|cvarname|upper }}_PKEY));
+		set_{{ item|getid|cvarname }}(persist_read_int({{ item|getid|cvarname|upper }}_PKEY));
 		{% elif item['type'] == 'toggle' %}
-		set{{ item|getid|cvarname|capitalize }}(persist_read_bool({{ item|getid|cvarname|upper }}_PKEY));
+		set_{{ item|getid|cvarname }}(persist_read_bool({{ item|getid|cvarname|upper }}_PKEY));
 		{% elif item['type'] == 'checkboxgroup' %}
 		#pragma message "'checkboxgroup' is not yet supported"
 		{% endif %}
@@ -136,21 +136,21 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 	{% if 'defaultValue' in item %}
 	else {
 		{% if item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
-		set{{ item|getid|cvarname | capitalize }}("{{item['defaultValue']}}");
+		set_{{ item|getid|cvarname }}("{{item['defaultValue']}}");
 		{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 		{% if item['options'][0]['value'] is string %}
-		set{{ item|getid|cvarname | capitalize }}("{{item['defaultValue']}}");
+		set_{{ item|getid|cvarname }}("{{item['defaultValue']}}");
 		{% else %}
-		set{{ item|getid|cvarname | capitalize }}({{item['defaultValue']}});
+		set_{{ item|getid|cvarname }}({{item['defaultValue']}});
 		{% endif %}
 		{% elif item['type'] == 'color' %}
 		{% if item['defaultValue'] is string %}
-		set{{ item|getid|cvarname | capitalize }}(GColorFromHEX(0x{{item['defaultValue']}}).argb);
+		set_{{ item|getid|cvarname }}(GColorFromHEX(0x{{item['defaultValue']}}).argb);
 		{% else %}
-		set{{ item|getid|cvarname | capitalize }}(GColorFromHEX({{item['defaultValue']}}).argb);
+		set_{{ item|getid|cvarname }}(GColorFromHEX({{item['defaultValue']}}).argb);
 		{% endif %}
 		{% elif item['type'] == 'toggle' %}
-		set{{ item|getid|cvarname | capitalize }}({{item['defaultValue']|lower}});
+		set_{{ item|getid|cvarname }}({{item['defaultValue']|lower}});
 		{% elif item['type'] == 'checkboxgroup' %}
 		#pragma message "'checkboxgroup' is not yet supported"
 		{% endif %}

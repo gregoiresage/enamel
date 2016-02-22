@@ -6,13 +6,13 @@ static Window *window;
 static TextLayer *text_layer;
 
 static void updateDisplay() {
-  if(getEnablebackground()) {
-    window_set_background_color(window, getBackground());
+  if(get_enableBackground()) {
+    window_set_background_color(window, get_background());
   }
   else {
     window_set_background_color(window,GColorWhite);
   }
-  switch(getFont_size()){
+  switch(get_font_size()){
     case FONT_SIZE_SMALL : text_layer_set_font(text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14)); break;
     case FONT_SIZE_NORMAL : text_layer_set_font(text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD)); break;
     case FONT_SIZE_LARGE : text_layer_set_font(text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD)); break;
