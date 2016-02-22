@@ -6,11 +6,13 @@ Enamel will :
 * save/load the value of the settings in the persistant storage automatically
 * provide a getter for each of your settings
 
+You can focus on your watchapp/face, Enamel will do the rest !
+
 ---
 
 # Getting Started (pebble wscript)
 1. You project must contain a valid configuration file in `src/js/config.json` (see https://github.com/pebble/clay)
-2. Extract [Enamel](https://github.com/gregoiresage/enamel/archive/develop.zip) at the root of your Pebble project or create a git submodule
+2. Extract [Enamel](https://github.com/gregoiresage/enamel/releases/latest) at the root of your Pebble project or create a git submodule
 3. Copy and paste the following line into the top of your `wscript` : 
   
   ``` python
@@ -120,7 +122,7 @@ Call `python enamel.py --help` for help
 
 ### Special case for `select` and `radiogroup`
 
-If the value of the options are `string` in the `config.json, Enamel will generate a `char*` getter
+If the value of the options are `string` in the `config.json`, Enamel will generate a `char*` getter
 
 If the value of the options are `integer`, Enamel will generate an `enum` mapping all the possible values for this setting and the getter will return this `enum`
 
