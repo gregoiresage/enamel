@@ -1,0 +1,246 @@
+#include <pebble.h>
+#include "{{ filename }}.h"
+
+static AppMessageInboxReceived custom_received_callback; 
+
+{% macro item_accessors_code(item) %}
+{% if 'appKey' in item %}
+{% if item['type'] == 'toggle' %}
+bool _{{ item|getid|cvarname }};
+bool get_{{ item|getid|cvarname }}(){
+	return _{{ item|getid|cvarname }};
+}
+void set_{{ item|getid|cvarname }}(bool value){
+	_{{ item|getid|cvarname }} = value;
+}
+{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
+{% if item['options'][0]['value'] is string %}
+char* _{{ item|getid|cvarname }}; 
+char* get_{{ item|getid|cvarname }}(){
+	return _{{ item|getid|cvarname }};
+}
+void set_{{ item|getid|cvarname }}(char* value){
+	if(_{{ item|getid|cvarname }}) free( _{{ item|getid|cvarname }});
+	uint32_t size = strlen(value);
+	_{{ item|getid|cvarname }} = malloc(size + 1);
+	_{{ item|getid|cvarname }}[size] = 0;
+	strncpy(_{{ item|getid|cvarname }}, value, size);
+}
+{% else %}
+{{ item|getid|cvarname|upper }}Value _{{ item|getid|cvarname }};
+{{ item|getid|cvarname|upper }}Value get_{{ item|getid|cvarname }}(){
+	return _{{ item|getid|cvarname }};
+}
+void set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Value value){
+	_{{ item|getid|cvarname }} = value;
+}
+{% endif %}
+{% elif item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
+char* _{{ item|getid|cvarname }}; 
+char* get_{{ item|getid|cvarname }}(){
+	return _{{ item|getid|cvarname }};
+}
+void set_{{ item|getid|cvarname }}(char* value){
+	if(_{{ item|getid|cvarname }}) free( _{{ item|getid|cvarname }});
+	uint32_t size = strlen(value);
+	_{{ item|getid|cvarname }} = malloc(size + 1);
+	_{{ item|getid|cvarname }}[size] = 0;
+	strncpy(_{{ item|getid|cvarname }}, value, size);
+}
+{% elif item['type'] == 'color' %}
+GColor _{{ item|getid|cvarname }};
+GColor get_{{ item|getid|cvarname }}(){
+	return _{{ item|getid|cvarname }};
+}
+void set_{{ item|getid|cvarname }}(uint8_t value){
+	_{{ item|getid|cvarname }}.argb = value;
+}
+{% elif item['type'] == 'checkboxgroup' %}
+#pragma message "'checkboxgroup' is not yet supported"
+{% endif %}
+{% endif %}
+{%- endmacro %}
+
+{% for item in config %}
+{% if item['type'] == 'section' %}
+{% for item in item['items'] %}
+{{ item_accessors_code(item) }}
+{% endfor %}
+{% else %}
+{{ item_accessors_code(item) }}
+{% endif %}
+{% endfor %}
+
+{% macro item_in_received_handler(item) %}
+{% if 'appKey' in item %}
+	tuple = dict_find(iter, {{ item|getid|cvarname|upper }}_PKEY);
+	{% if item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
+	tuple ? set_{{ item|getid|cvarname }}(tuple->value->cstring) : false;
+	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
+	{% if item['options'][0]['value'] is string %}
+	tuple ? set_{{ item|getid|cvarname }}(tuple->value->cstring) : false;
+	{% else %}
+	tuple ? set_{{ item|getid|cvarname }}(atoi(tuple->value->cstring)) : false;
+	{% endif %}
+	{% elif item['type'] == 'color' %}
+	tuple ? set_{{ item|getid|cvarname }}(GColorFromHEX(tuple->value->int32).argb) : false;
+	{% elif item['type'] == 'toggle' %}
+	tuple ? set_{{ item|getid|cvarname }}(tuple->value->int32) : false;
+	{% elif item['type'] == 'checkboxgroup' %}
+	#pragma message "'checkboxgroup' is not yet supported"
+	{% endif %}
+{% endif %}
+{% endmacro %}
+
+static void in_received_handler(DictionaryIterator *iter, void *context) {
+	Tuple *tuple = NULL;
+{% for item in config %}
+{% if item['type'] == 'section' %}
+{% for item in item['items'] %}
+{{ item_in_received_handler(item) }}
+{% endfor %}
+{% else %}
+{{ item_in_received_handler(item) }}
+{% endif %}
+{% endfor %}
+	if(custom_received_callback) {
+		custom_received_callback(iter, context);
+	}
+}
+
+{% macro item_init(item) %}
+{% if 'appKey' in item %}
+	if (persist_exists({{ item|getid|cvarname|upper }}_PKEY)) {
+		{% if item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
+		char tmp[{{ filename|upper }}_MAX_STRING_LENGTH];
+		memset(tmp, 0, {{ filename|upper }}_MAX_STRING_LENGTH);
+		persist_read_string({{ item|getid|cvarname|upper }}_PKEY, tmp, {{ filename|upper }}_MAX_STRING_LENGTH);
+		set_{{ item|getid|cvarname }}(tmp);
+		{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
+		{% if item['options'][0]['value'] is string %}
+		char tmp[{{ filename|upper }}_MAX_STRING_LENGTH];
+		memset(tmp, 0, {{ filename|upper }}_MAX_STRING_LENGTH);
+		persist_read_string({{ item|getid|cvarname|upper }}_PKEY, tmp, {{ filename|upper }}_MAX_STRING_LENGTH);
+		set_{{ item|getid|cvarname }}(tmp);
+		{% else %}
+		set_{{ item|getid|cvarname }}(persist_read_int({{ item|getid|cvarname|upper }}_PKEY));
+		{% endif %}
+		{% elif item['type'] == 'color' %}
+		set_{{ item|getid|cvarname }}(persist_read_int({{ item|getid|cvarname|upper }}_PKEY));
+		{% elif item['type'] == 'toggle' %}
+		set_{{ item|getid|cvarname }}(persist_read_bool({{ item|getid|cvarname|upper }}_PKEY));
+		{% elif item['type'] == 'checkboxgroup' %}
+		#pragma message "'checkboxgroup' is not yet supported"
+		{% endif %}
+	}
+	{% if 'defaultValue' in item %}
+	else {
+		{% if item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
+		set_{{ item|getid|cvarname }}("{{item['defaultValue']}}");
+		{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
+		{% if item['options'][0]['value'] is string %}
+		set_{{ item|getid|cvarname }}("{{item['defaultValue']}}");
+		{% else %}
+		set_{{ item|getid|cvarname }}({{item['defaultValue']}});
+		{% endif %}
+		{% elif item['type'] == 'color' %}
+		{% if item['defaultValue'] is string %}
+		set_{{ item|getid|cvarname }}(GColorFromHEX(0x{{item['defaultValue']}}).argb);
+		{% else %}
+		set_{{ item|getid|cvarname }}(GColorFromHEX({{item['defaultValue']}}).argb);
+		{% endif %}
+		{% elif item['type'] == 'toggle' %}
+		set_{{ item|getid|cvarname }}({{item['defaultValue']|lower}});
+		{% elif item['type'] == 'checkboxgroup' %}
+		#pragma message "'checkboxgroup' is not yet supported"
+		{% endif %}
+	}
+	{% endif %}
+{% endif %}
+{% endmacro %}
+
+{% macro item_dict_size(item) %}
+	{% if item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
+		{{ filename|upper }}_MAX_STRING_LENGTH
+	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
+	{% if item['options'][0]['value'] is string %}
+		{{ filename|upper }}_MAX_STRING_LENGTH
+	{% else %}
+		4
+	{% endif %}
+	{% else %}
+		4
+	{% endif %}
+{% endmacro %}
+
+void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbound){
+	custom_received_callback = NULL;
+	app_message_register_inbox_received(in_received_handler);
+
+	if(size_inbound == 0) {
+		app_message_open(1
+		{% for item in config %}
+		{% if item['type'] == 'section' %}
+		{% for item in item['items'] %}
+		+7+{{ item_dict_size(item) }}
+		{% endfor %}
+		{% else %}
+		+7+{{ item_dict_size(item) }}
+		{% endif %}
+		{% endfor %}
+		, size_outbound);
+	}
+	else {
+		app_message_open(size_inbound, size_outbound);
+	}
+	
+{% for item in config %}
+{% if item['type'] == 'section' %}
+{% for item in item['items'] %}
+{{ item_init(item) }}
+{% endfor %}
+{% else %}
+{{ item_init(item) }}
+{% endif %}
+{% endfor %}
+}
+
+{% macro item_deinit(item) %}
+{% if 'appKey' in item %}
+	{% if item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
+	persist_write_string({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }});
+	if(_{{ item|getid|cvarname }}) free(_{{ item|getid|cvarname }});
+	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
+	{% if item['options'][0]['value'] is string %}
+	persist_write_string({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }});
+	if(_{{ item|getid|cvarname }}) free(_{{ item|getid|cvarname }});
+	{% else %}
+	persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }} ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
+	{% endif %}
+	{% elif item['type'] == 'toggle' %}
+	persist_read_bool({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }} ? persist_write_bool({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
+	{% elif item['type'] == 'color' %}
+	persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }}.argb ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}.argb) : false;
+	{% elif item['type'] == 'checkboxgroup' %}
+	#pragma message "'checkboxgroup' is not yet supported"
+	{% endif %}
+{% endif %}
+{% endmacro %}
+
+void {{ filename }}_deinit(){
+{% for item in config %}
+{% if item['type'] == 'section' %}
+{% for item in item['items'] %}
+{{ item_deinit(item) }}
+{% endfor %}
+{% else %}
+{{ item_deinit(item) }}
+{% endif %}
+{% endfor %}
+	app_message_deregister_callbacks();
+	custom_received_callback = NULL;
+}
+
+void {{ filename }}_register_custom_inbox_received(AppMessageInboxReceived received_callback) {
+	custom_received_callback = received_callback;
+}
