@@ -53,6 +53,9 @@ def generate(appinfo='appinfo.json', configFile='src/js/config.json', outputDir=
         f.write(env.get_template(template).render({'filename' : outputFileName, 'config' : config_content, 'appinfo' : appinfo_content}))
         f.close()
 
+def enamel(task):
+    generate(configFile=task.inputs[0].abspath(), outputDir=task.generator.bld.bldnode.abspath())
+
 import argparse
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generates C helpers from a Clay configuration file')

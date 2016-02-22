@@ -1,6 +1,6 @@
 #include <pebble.h>
 
-#include "generated/enamel.h"
+#include "enamel.h"
 
 static Window *window;
 static TextLayer *text_layer;
