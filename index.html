@@ -1,0 +1,273 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Enamel by gregoiresage</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">Enamel</h1>
+        <p class="header">Helps C development with Clay config framework</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/gregoiresage/enamel/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/gregoiresage/enamel/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/gregoiresage/enamel">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/gregoiresage">gregoiresage</a></p>
+
+
+      </header>
+      <section>
+        <h1>
+<a id="enamel" class="anchor" href="#enamel" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Enamel</h1>
+
+<p>Enamel is a python script that generates C helpers from a <a href="https://github.com/pebble/clay">Clay</a> configuration file to easily get the value of your settings.</p>
+
+<p>Enamel will :</p>
+
+<ul>
+<li>handle AppMessages automatically (app_message_open, handler registration, ...)</li>
+<li>save/load the value of the settings in the persistant storage automatically</li>
+<li>provide a getter for each of your settings</li>
+</ul>
+
+<hr>
+
+<h1>
+<a id="getting-started-pebble-wscript" class="anchor" href="#getting-started-pebble-wscript" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Getting Started (pebble wscript)</h1>
+
+<ol>
+<li>You project must contain a valid configuration file in <code>src/js/config.json</code> (see <a href="https://github.com/pebble/clay">https://github.com/pebble/clay</a>)</li>
+<li>Extract <a href="https://github.com/gregoiresage/enamel/archive/develop.zip">Enamel</a> at the root of your Pebble project or create a git submodule</li>
+<li>
+<p>Copy and paste the following line into the top of your <code>wscript</code> : </p>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-k">from</span> enamel.enamel <span class="pl-k">import</span> enamel</pre></div>
+</li>
+<li>
+<p>Change the <code>build</code> of your wscript from </p>
+
+<div class="highlight highlight-source-python"><pre>ctx.pbl_program(<span class="pl-v">source</span><span class="pl-k">=</span>ctx.path.ant_glob(<span class="pl-s"><span class="pl-pds">'</span>src/**/*.c<span class="pl-pds">'</span></span>), <span class="pl-v">target</span><span class="pl-k">=</span>app_elf)</pre></div>
+
+<p>to</p>
+
+<div class="highlight highlight-source-python"><pre>ctx(<span class="pl-v">rule</span> <span class="pl-k">=</span> enamel, <span class="pl-v">source</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>src/js/config.json<span class="pl-pds">'</span></span>, <span class="pl-v">target</span><span class="pl-k">=</span>[<span class="pl-s"><span class="pl-pds">'</span>enamel.c<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>enamel.h<span class="pl-pds">'</span></span>])
+ctx.pbl_program(<span class="pl-v">source</span><span class="pl-k">=</span>ctx.path.ant_glob(<span class="pl-s"><span class="pl-pds">'</span>src/**/*.c<span class="pl-pds">'</span></span>) <span class="pl-k">+</span> [<span class="pl-s"><span class="pl-pds">'</span>enamel.c<span class="pl-pds">'</span></span>], <span class="pl-v">target</span><span class="pl-k">=</span>app_elf)</pre></div>
+</li>
+<li>Launch your Pebble build : 2 files (enamel.c and enamel.h) should be generated in <code>build</code> and compiled</li>
+</ol>
+
+<h1>
+<a id="getting-started-python" class="anchor" href="#getting-started-python" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Getting Started (python)</h1>
+
+<p>If you can't modify the wscript (Cloudpebble development) you can call directly the python script.<br>
+The following command will generate 2 files (enamel.c and enamel.h) in <code>src/generated</code>, you just need to copy them in your project</p>
+
+<pre><code>python enamel.py --appinfo /path/to/your/appinfo.json --config /path/to/your/config.json 
+</code></pre>
+
+<p>Call <code>python enamel.py --help</code> for help</p>
+
+<hr>
+
+<h1>
+<a id="using-enamel" class="anchor" href="#using-enamel" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Using Enamel</h1>
+
+<ol>
+<li>Setup your project correctly for Clay : <a href="https://github.com/pebble/clay">https://github.com/pebble/clay</a>
+</li>
+<li>
+<p>Include <code>enamel.h</code> in your c file : </p>
+
+<div class="highlight highlight-source-c"><pre>#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">"</span>enamel.h<span class="pl-pds">"</span></span></pre></div>
+</li>
+<li>
+<p>Initialize enamel in your <code>init</code> function : </p>
+
+<div class="highlight highlight-source-c"><pre><span class="pl-k">static</span> <span class="pl-k">void</span> <span class="pl-en">init</span>(<span class="pl-k">void</span>) {
+  <span class="pl-c">// Initialize Enamel to register App Message handlers and restores settings</span>
+  <span class="pl-c1">enamel_init</span>(<span class="pl-c1">0</span>, <span class="pl-c1">0</span>);
+
+  ...
+}</pre></div>
+</li>
+<li>
+<p>Deinitialize enamel in your <code>deinit</code> function :</p>
+
+<div class="highlight highlight-source-c"><pre><span class="pl-k">static</span> <span class="pl-k">void</span> <span class="pl-en">deinit</span>(<span class="pl-k">void</span>) {
+  ...
+
+  <span class="pl-c">// Deinit Enamel to unregister App Message handlers and save settings</span>
+  <span class="pl-c1">enamel_deinit</span>();
+}</pre></div>
+</li>
+<li>
+<p>(Optional) Register a custom <code>in_received_handler</code> in your <code>init</code>. <br>This handler will be automatically called by enamel when a setting is received.</p>
+
+<div class="highlight highlight-source-c"><pre><span class="pl-k">static</span> <span class="pl-k">void</span> <span class="pl-en">in_received_handler</span>(DictionaryIterator *iter, <span class="pl-k">void</span> *context) {
+  <span class="pl-c1">APP_LOG</span>(<span class="pl-c1">0</span>, <span class="pl-s"><span class="pl-pds">"</span>Settings received <span class="pl-c1">%d</span><span class="pl-pds">"</span></span>, <span class="pl-c1">get_myinteger</span>());
+  <span class="pl-c1">window_set_background_color</span>(window, <span class="pl-c1">get_background</span>());
+  <span class="pl-c">// do what you want here </span>
+  <span class="pl-c">// you will probably udpate your textlayers, colors, ... with the new settings</span>
+  <span class="pl-c">// and mark your layers dirty</span>
+}
+
+...
+
+<span class="pl-k">static</span> <span class="pl-k">void</span> <span class="pl-en">init</span>(<span class="pl-k">void</span>) {
+  <span class="pl-c">// Initialize Enamel to register App Message handlers and restores settings</span>
+  <span class="pl-c1">enamel_init</span>(<span class="pl-c1">0</span>, <span class="pl-c1">0</span>);
+
+  <span class="pl-c">// Register our custom receive handler</span>
+  <span class="pl-c1">enamel_register_custom_inbox_received</span>(in_received_handler);
+
+  ...
+}</pre></div>
+</li>
+<li>
+<p>Get the value of your setting with :</p>
+
+<div class="highlight highlight-source-c"><pre><span class="pl-en">get_Mysetting</span>(); <span class="pl-c">// where 'Mysetting' is an appKey in your configuration file</span></pre></div>
+</li>
+</ol>
+
+<hr>
+
+<h1>
+<a id="enamel-api" class="anchor" href="#enamel-api" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Enamel API</h1>
+
+<h2>
+<a id="methods" class="anchor" href="#methods" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Methods</h2>
+
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void enamel_init(const uint32_t size_inbound, const uint32_t size_outbound)</code></td>
+<td>Initialize Enamel. <br>If <code>size_inbound</code> is <code>0</code>, Enamel will calculate the inbound size automatically for you</td>
+</tr>
+<tr>
+<td><code>void enamel_deinit()</code></td>
+<td>Deinitialize Enamel and save the settings in the persistant storage</td>
+</tr>
+<tr>
+<td><code>void enamel_register_custom_inbox_received( AppMessageInboxReceived received_callback )</code></td>
+<td>Register a custom received callback called when a setting is received</td>
+</tr>
+<tr>
+<td><code>&lt;type&gt; get_appKeyId()</code></td>
+<td>Return the value for the setting <code>appKeyId</code>
+</td>
+</tr>
+</tbody>
+</table>
+
+<h2>
+<a id="type-mapping" class="anchor" href="#type-mapping" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Type mapping</h2>
+
+<table>
+<thead>
+<tr>
+<th>Clay Type</th>
+<th>Type returned by the getter</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>heading/text/input</code></td>
+<td><code>char*</code></td>
+</tr>
+<tr>
+<td><code>toggle</code></td>
+<td><code>bool</code></td>
+</tr>
+<tr>
+<td><code>color</code></td>
+<td><code>GColor</code></td>
+</tr>
+<tr>
+<td><code>select/radiogroup</code></td>
+<td>
+<code>char*</code> or <code>enum</code>
+</td>
+</tr>
+<tr>
+<td><code>checkboxgroup</code></td>
+<td>not supported</td>
+</tr>
+</tbody>
+</table>
+
+<h3>
+<a id="special-case-for-select-and-radiogroup" class="anchor" href="#special-case-for-select-and-radiogroup" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Special case for <code>select</code> and <code>radiogroup</code>
+</h3>
+
+<p>If the value of the options are <code>string</code> in the <code>config.json, Enamel will generate a</code>char*` getter</p>
+
+<p>If the value of the options are <code>integer</code>, Enamel will generate an <code>enum</code> mapping all the possible values for this setting and the getter will return this <code>enum</code></p>
+
+<p>For the given setting :</p>
+
+<div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>type<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>radiogroup<span class="pl-pds">"</span></span>,
+  <span class="pl-s"><span class="pl-pds">"</span>appKey<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>favorite_food<span class="pl-pds">"</span></span>,
+  <span class="pl-s"><span class="pl-pds">"</span>label<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>Favorite Food<span class="pl-pds">"</span></span>,
+  <span class="pl-s"><span class="pl-pds">"</span>defaultValue<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>1<span class="pl-pds">"</span></span>,
+  <span class="pl-s"><span class="pl-pds">"</span>options<span class="pl-pds">"</span></span>: [
+    { 
+      <span class="pl-s"><span class="pl-pds">"</span>label<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>Sushi<span class="pl-pds">"</span></span>, 
+      <span class="pl-s"><span class="pl-pds">"</span>value<span class="pl-pds">"</span></span>: <span class="pl-c1">0</span> 
+    },
+    { 
+      <span class="pl-s"><span class="pl-pds">"</span>label<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>Pizza<span class="pl-pds">"</span></span>, 
+      <span class="pl-s"><span class="pl-pds">"</span>value<span class="pl-pds">"</span></span>: <span class="pl-c1">1</span> 
+    },
+    { 
+      <span class="pl-s"><span class="pl-pds">"</span>label<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>Burgers<span class="pl-pds">"</span></span>, 
+      <span class="pl-s"><span class="pl-pds">"</span>value<span class="pl-pds">"</span></span>: <span class="pl-c1">2</span> 
+    }
+  ]
+}</pre></div>
+
+<p>Enamel will generate</p>
+
+<div class="highlight highlight-source-c"><pre><span class="pl-k">typedef</span> <span class="pl-k">enum</span> {
+    FAVORITE_FOOD_SUSHI = <span class="pl-c1">0</span>,
+    FAVORITE_FOOD_PIZZA = <span class="pl-c1">1</span>,
+    FAVORITE_FOOD_BURGER = <span class="pl-c1">2</span>,
+} FAVORITE_FOODValue;
+FAVORITE_FOODValue <span class="pl-en">get_favorite_food</span>();</pre></div>
+
+<p>You can then easily code switch case for this setting</p>
+
+<div class="highlight highlight-source-c"><pre><span class="pl-k">switch</span>(get_favorite_food()){
+ <span class="pl-k">case</span> FAVORITE_FOOD_SUSHI : <span class="pl-k">break</span>; <span class="pl-c">//do something</span>
+ <span class="pl-k">case</span> FAVORITE_FOOD_PIZZA : <span class="pl-k">break</span>; <span class="pl-c">//do something</span>
+ <span class="pl-k">case</span> FAVORITE_FOOD_BURGER : <span class="pl-k">break</span>; <span class="pl-c">//do something</span>
+}</pre></div>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
+  </body>
+</html>
