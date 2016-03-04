@@ -56,7 +56,48 @@ void set_{{ item|getid|cvarname }}(uint8_t value){
 	_{{ item|getid|cvarname }}.argb = value;
 }
 {% elif item['type'] == 'checkboxgroup' %}
-#pragma message "'checkboxgroup' is not yet supported"
+uint32_t _{{ item|getid|cvarname }}_count; 
+{% if item['options'][0]['value'] is string %}
+char** _{{ item|getid|cvarname }}; 
+char* get_{{ item|getid|cvarname }}(uint32_t index_){
+	if(index_ < _{{ item|getid|cvarname }}_count)
+		return _{{ item|getid|cvarname }}[index_];
+	return 0;
+}
+{% else %}
+{{ item|getid|cvarname|upper }}Value* _{{ item|getid|cvarname }};
+{{ item|getid|cvarname|upper }}Value get_{{ item|getid|cvarname }}(){
+	if(index_ < _{{ item|getid|cvarname }}_count)
+		return _{{ item|getid|cvarname }}[index_];
+	return 0;
+}
+{% endif %}
+void set_{{ item|getid|cvarname }}(char** values_, uint32_t count_){
+	if(_{{ item|getid|cvarname }}){
+{% if item['options'][0]['value'] is string %}
+		for(uint32_t i=0; i<_{{ item|getid|cvarname }}_count; i++){
+			free(_{{ item|getid|cvarname }}[i]);
+		}
+{% endif %}
+		free(_{{ item|getid|cvarname }});
+	}
+{% if item['options'][0]['value'] is string %}
+	_{{ item|getid|cvarname }} = malloc(count_ * sizeof(char*));
+{% else %}
+	_{{ item|getid|cvarname }} = malloc(count_ * sizeof({{ item|getid|cvarname|upper }}Value));
+{% endif %}
+	_{{ item|getid|cvarname }}_count = count_;
+	for(uint32_t i=0; i<count_; i++){
+{% if item['options'][0]['value'] is string %}
+		uint32_t size = strlen(values_[i]);
+		_{{ item|getid|cvarname }}[i] = malloc(size + 1);
+		_{{ item|getid|cvarname }}[i][size] = 0;
+		strncpy(_{{ item|getid|cvarname }}[i], values_[i], size);
+{% else %}
+		_{{ item|getid|cvarname }}[i] = atoi(values_[i]);
+{% endif %}
+	}
+}
 {% endif %}
 {% endif %}
 {%- endmacro %}
@@ -87,7 +128,17 @@ void set_{{ item|getid|cvarname }}(uint8_t value){
 	{% elif item['type'] == 'toggle' %}
 	tuple ? set_{{ item|getid|cvarname }}(tuple->value->int32) : false;
 	{% elif item['type'] == 'checkboxgroup' %}
-	#pragma message "'checkboxgroup' is not yet supported"
+	if(tuple){
+		char* values[{{ item['options']|length }}];
+		uint32_t count=0;
+		uint16_t offset = 0;
+		while(offset < tuple->length) {
+			values[count] = (char*)tuple->value->data;
+			offset += strlen(values[count]) + 1;
+			count++;
+		}
+		set_{{ item|getid|cvarname }}(values, count);
+	}
 	{% endif %}
 {% endif %}
 {% endmacro %}

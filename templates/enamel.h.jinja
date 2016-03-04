@@ -28,7 +28,17 @@ char* get_{{ item|getid|cvarname }}();
 {% elif item['type'] == 'color' %}
 GColor get_{{ item|getid|cvarname }}();
 {% elif item['type'] == 'checkboxgroup' %}
-#pragma message "'checkboxgroup' is not yet supported"
+uint32_t get_{{ item|getid|cvarname }}_count();
+{% if item['options'][0]['value'] is string %}
+char* get_{{ item|getid|cvarname }}(uint32_t index);
+{% else %}
+typedef enum {
+{% for option in item['options']: %}
+	{{ item|getid|cvarname|upper }}_{{ option['label']|cvarname|upper }} = {{ option['value'] }},
+{% endfor %}
+} {{ item|getid|cvarname|upper }}Value;
+{{ item|getid|cvarname|upper }}Value get_{{ item|getid|cvarname }}(uint32_t index);
+{% endif %}
 {% else %}
 #error Unknown type '{{ item['type'] }}' for item '{{ item['appKey'] }}'
 {% endif %}

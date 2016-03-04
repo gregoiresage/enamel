@@ -37,6 +37,26 @@
           "value": 2 
         }
       ]
+    },
+    {
+      "type": "checkboxgroup",
+      "appKey": "favorite_food",
+      "label": "Favorite Food",
+      "defaultValue": ["sushi", "burgers"],
+      "options": [
+        { 
+          "label": "Sushi", 
+          "value": "sushi" 
+        },
+        { 
+          "label": "Pizza", 
+          "value": "pizza" 
+        },
+        { 
+          "label": "Burgers", 
+          "value": "burgers" 
+        }
+      ]
     }
   ]
 },
