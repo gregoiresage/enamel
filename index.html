@@ -43,6 +43,8 @@
 <li>provide a getter for each of your settings</li>
 </ul>
 
+<p>You can focus on your watchapp/face, Enamel will do the rest !</p>
+
 <hr>
 
 <h1>
@@ -50,7 +52,7 @@
 
 <ol>
 <li>You project must contain a valid configuration file in <code>src/js/config.json</code> (see <a href="https://github.com/pebble/clay">https://github.com/pebble/clay</a>)</li>
-<li>Extract <a href="https://github.com/gregoiresage/enamel/archive/develop.zip">Enamel</a> at the root of your Pebble project or create a git submodule</li>
+<li>Extract <a href="https://github.com/gregoiresage/enamel/releases/latest">Enamel</a> at the root of your Pebble project or create a git submodule</li>
 <li>
 <p>Copy and paste the following line into the top of your <code>wscript</code> : </p>
 
@@ -219,7 +221,7 @@ The following command will generate 2 files (enamel.c and enamel.h) in <code>src
 <a id="special-case-for-select-and-radiogroup" class="anchor" href="#special-case-for-select-and-radiogroup" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Special case for <code>select</code> and <code>radiogroup</code>
 </h3>
 
-<p>If the value of the options are <code>string</code> in the <code>config.json, Enamel will generate a</code>char*` getter</p>
+<p>If the value of the options are <code>string</code> in the <code>config.json</code>, Enamel will generate a <code>char*</code> getter</p>
 
 <p>If the value of the options are <code>integer</code>, Enamel will generate an <code>enum</code> mapping all the possible values for this setting and the getter will return this <code>enum</code></p>
 
@@ -268,6 +270,16 @@ FAVORITE_FOODValue <span class="pl-en">get_favorite_food</span>();</pre></div>
       </footer>
     </div>
     <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-		
+		          <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-44039387-7");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
   </body>
 </html>
