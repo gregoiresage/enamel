@@ -3,6 +3,7 @@ import json
 import collections
 import re
 import sys
+import array
 
 try:
     from jinja2 import Environment
@@ -25,6 +26,31 @@ def getid(item):
     """Return an identifier for the given config item, takes 'id' if it exists or 'appKey'"""
     return item['id'] if 'id' in item else item['appKey']
 
+def maxdictsize(item):
+    """Return the maximum size of the item in the dictionary"""
+    size = 0
+    if item['type'] == 'select' or item['type'] == 'radiogroup' :
+        for option in item['options'] :
+            size = max(size, len(str(option['value'])) + 1)
+    elif item['type'] == 'checkboxgroup' :
+        for option in item['options'] :
+            size += len(str(option['value'])) + 1
+    return size
+
+def defaulttobytearray(item):
+    """Convert the array of default values to an array of bytes (only relevant for checkboxgroup)"""
+    res = ''
+    if item['type'] == 'checkboxgroup' :
+        arr = []
+        for value in item['defaultValue'] :
+            arr += map(ord,value)
+            arr += [0]
+        res = '{'
+        for a in arr :
+            res += str(a) + ','
+        res += '}'
+    return res
+
 def generate(appinfo='appinfo.json', configFile='src/js/config.json', outputDir='src/generated', outputFileName='enamel'):
     """Generates C helpers from a Clay configuration file"""
     # create output folder
@@ -37,6 +63,8 @@ def generate(appinfo='appinfo.json', configFile='src/js/config.json', outputDir=
     # add custom filters
     env.filters['cvarname'] = cvarname
     env.filters['getid']    = getid
+    env.filters['maxdictsize']  = maxdictsize
+    env.filters['defaulttobytearray'] = defaulttobytearray
 
     # loads appinfo file
     appinfo_content=open(appinfo)

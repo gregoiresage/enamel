@@ -1,25 +1,30 @@
 #include <pebble.h>
 #include "{{ filename }}.h"
 
+#ifndef {{ filename|upper }}_MAX_STRING_LENGTH
+#define {{ filename|upper }}_MAX_STRING_LENGTH 30
+#endif
+
 static AppMessageInboxReceived custom_received_callback; 
 
 {% macro item_accessors_code(item) %}
 {% if 'appKey' in item %}
+#define {{ item|getid|cvarname|upper }}_PKEY {{ appinfo['appKeys'][item['appKey']] }}
 {% if item['type'] == 'toggle' %}
-bool _{{ item|getid|cvarname }};
+static bool _{{ item|getid|cvarname }};
 bool get_{{ item|getid|cvarname }}(){
 	return _{{ item|getid|cvarname }};
 }
-void set_{{ item|getid|cvarname }}(bool value){
+static void set_{{ item|getid|cvarname }}(bool value){
 	_{{ item|getid|cvarname }} = value;
 }
 {% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 {% if item['options'][0]['value'] is string %}
-char* _{{ item|getid|cvarname }}; 
+static char* _{{ item|getid|cvarname }}; 
 char* get_{{ item|getid|cvarname }}(){
 	return _{{ item|getid|cvarname }};
 }
-void set_{{ item|getid|cvarname }}(char* value){
+static void set_{{ item|getid|cvarname }}(char* value){
 	if(_{{ item|getid|cvarname }}) free( _{{ item|getid|cvarname }});
 	uint32_t size = strlen(value);
 	_{{ item|getid|cvarname }} = malloc(size + 1);
@@ -31,16 +36,16 @@ void set_{{ item|getid|cvarname }}(char* value){
 {{ item|getid|cvarname|upper }}Value get_{{ item|getid|cvarname }}(){
 	return _{{ item|getid|cvarname }};
 }
-void set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Value value){
+static void set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Value value){
 	_{{ item|getid|cvarname }} = value;
 }
 {% endif %}
-{% elif item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
-char* _{{ item|getid|cvarname }}; 
+{% elif item['type'] == 'input' %}
+static char* _{{ item|getid|cvarname }}; 
 char* get_{{ item|getid|cvarname }}(){
 	return _{{ item|getid|cvarname }};
 }
-void set_{{ item|getid|cvarname }}(char* value){
+static void set_{{ item|getid|cvarname }}(char* value){
 	if(_{{ item|getid|cvarname }}) free( _{{ item|getid|cvarname }});
 	uint32_t size = strlen(value);
 	_{{ item|getid|cvarname }} = malloc(size + 1);
@@ -48,55 +53,61 @@ void set_{{ item|getid|cvarname }}(char* value){
 	strncpy(_{{ item|getid|cvarname }}, value, size);
 }
 {% elif item['type'] == 'color' %}
-GColor _{{ item|getid|cvarname }};
+static GColor _{{ item|getid|cvarname }};
 GColor get_{{ item|getid|cvarname }}(){
 	return _{{ item|getid|cvarname }};
 }
-void set_{{ item|getid|cvarname }}(uint8_t value){
+static void set_{{ item|getid|cvarname }}(uint8_t value){
 	_{{ item|getid|cvarname }}.argb = value;
 }
 {% elif item['type'] == 'checkboxgroup' %}
-uint32_t _{{ item|getid|cvarname }}_count; 
+typedef struct {
+  uint16_t count;
 {% if item['options'][0]['value'] is string %}
-char** _{{ item|getid|cvarname }}; 
-char* get_{{ item|getid|cvarname }}(uint32_t index_){
-	if(index_ < _{{ item|getid|cvarname }}_count)
-		return _{{ item|getid|cvarname }}[index_];
+  uint16_t values[{{ item['options']|length }}]; 
+{% else %}
+  {{ item|getid|cvarname|upper }}Value values[{{ item['options']|length }}];
+{% endif %}
+} {{ item|getid|cvarname }}Data;
+static {{ item|getid|cvarname }}Data _{{ item|getid|cvarname }}_data;
+{% if item['options'][0]['value'] is string %}
+static const char* {{ item|getid|cvarname }}_values[] = {
+{% for option in item['options'] %}
+	"{{ option['value'] }}",
+{% endfor %}
+};
+const char* get_{{ item|getid|cvarname }}(uint16_t index_){
+	if(index_ < _{{ item|getid|cvarname }}_data.count)
+		return {{ item|getid|cvarname }}_values[_{{ item|getid|cvarname }}_data.values[index_]];
 	return 0;
 }
 {% else %}
-{{ item|getid|cvarname|upper }}Value* _{{ item|getid|cvarname }};
-{{ item|getid|cvarname|upper }}Value get_{{ item|getid|cvarname }}(){
-	if(index_ < _{{ item|getid|cvarname }}_count)
-		return _{{ item|getid|cvarname }}[index_];
+{{ item|getid|cvarname|upper }}Value get_{{ item|getid|cvarname }}(uint16_t index_){
+	if(index_ < _{{ item|getid|cvarname }}_data.count)
+		return _{{ item|getid|cvarname }}_data.values[index_];
 	return 0;
 }
 {% endif %}
-void set_{{ item|getid|cvarname }}(char** values_, uint32_t count_){
-	if(_{{ item|getid|cvarname }}){
+uint16_t get_{{ item|getid|cvarname }}_count(){
+	return _{{ item|getid|cvarname }}_data.count;
+}
+static void set_{{ item|getid|cvarname }}(uint8_t* data_, uint16_t length_){
+	uint16_t count = 0;
+	uint8_t* end = data_ + length_;
+	while(data_ < end) {
 {% if item['options'][0]['value'] is string %}
-		for(uint32_t i=0; i<_{{ item|getid|cvarname }}_count; i++){
-			free(_{{ item|getid|cvarname }}[i]);
-		}
-{% endif %}
-		free(_{{ item|getid|cvarname }});
-	}
-{% if item['options'][0]['value'] is string %}
-	_{{ item|getid|cvarname }} = malloc(count_ * sizeof(char*));
+		for(uint16_t i=0; i<{{ item['options']|length }}; i++){
+			if(strcmp((char*)data_, {{ item|getid|cvarname }}_values[i]) == 0){
+				_{{ item|getid|cvarname }}_data.values[count++] = i;
+				break;
+			}
+		} 
 {% else %}
-	_{{ item|getid|cvarname }} = malloc(count_ * sizeof({{ item|getid|cvarname|upper }}Value));
+		_{{ item|getid|cvarname }}_data.values[count++] = atoi((char*)data_);
 {% endif %}
-	_{{ item|getid|cvarname }}_count = count_;
-	for(uint32_t i=0; i<count_; i++){
-{% if item['options'][0]['value'] is string %}
-		uint32_t size = strlen(values_[i]);
-		_{{ item|getid|cvarname }}[i] = malloc(size + 1);
-		_{{ item|getid|cvarname }}[i][size] = 0;
-		strncpy(_{{ item|getid|cvarname }}[i], values_[i], size);
-{% else %}
-		_{{ item|getid|cvarname }}[i] = atoi(values_[i]);
-{% endif %}
+		while (*data_++);
 	}
+	_{{ item|getid|cvarname }}_data.count = count;
 }
 {% endif %}
 {% endif %}
@@ -115,7 +126,7 @@ void set_{{ item|getid|cvarname }}(char** values_, uint32_t count_){
 {% macro item_in_received_handler(item) %}
 {% if 'appKey' in item %}
 	tuple = dict_find(iter, {{ item|getid|cvarname|upper }}_PKEY);
-	{% if item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
+	{% if item['type'] == 'input' %}
 	tuple ? set_{{ item|getid|cvarname }}(tuple->value->cstring) : false;
 	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 	{% if item['options'][0]['value'] is string %}
@@ -128,17 +139,7 @@ void set_{{ item|getid|cvarname }}(char** values_, uint32_t count_){
 	{% elif item['type'] == 'toggle' %}
 	tuple ? set_{{ item|getid|cvarname }}(tuple->value->int32) : false;
 	{% elif item['type'] == 'checkboxgroup' %}
-	if(tuple){
-		char* values[{{ item['options']|length }}];
-		uint32_t count=0;
-		uint16_t offset = 0;
-		while(offset < tuple->length) {
-			values[count] = (char*)tuple->value->data;
-			offset += strlen(values[count]) + 1;
-			count++;
-		}
-		set_{{ item|getid|cvarname }}(values, count);
-	}
+	tuple ? set_{{ item|getid|cvarname }}(tuple->value->data, tuple->length) : false;
 	{% endif %}
 {% endif %}
 {% endmacro %}
@@ -162,7 +163,7 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 {% macro item_init(item) %}
 {% if 'appKey' in item %}
 	if (persist_exists({{ item|getid|cvarname|upper }}_PKEY)) {
-		{% if item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
+		{% if item['type'] == 'input' %}
 		char tmp[{{ filename|upper }}_MAX_STRING_LENGTH];
 		memset(tmp, 0, {{ filename|upper }}_MAX_STRING_LENGTH);
 		persist_read_string({{ item|getid|cvarname|upper }}_PKEY, tmp, {{ filename|upper }}_MAX_STRING_LENGTH);
@@ -181,12 +182,12 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 		{% elif item['type'] == 'toggle' %}
 		set_{{ item|getid|cvarname }}(persist_read_bool({{ item|getid|cvarname|upper }}_PKEY));
 		{% elif item['type'] == 'checkboxgroup' %}
-		#pragma message "'checkboxgroup' is not yet supported"
+		persist_read_data({{ item|getid|cvarname|upper }}_PKEY, &_{{ item|getid|cvarname }}_data, sizeof({{ item|getid|cvarname }}Data));
 		{% endif %}
 	}
 	{% if 'defaultValue' in item %}
 	else {
-		{% if item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
+		{% if item['type'] == 'input' %}
 		set_{{ item|getid|cvarname }}("{{item['defaultValue']}}");
 		{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 		{% if item['options'][0]['value'] is string %}
@@ -203,7 +204,8 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 		{% elif item['type'] == 'toggle' %}
 		set_{{ item|getid|cvarname }}({{item['defaultValue']|lower}});
 		{% elif item['type'] == 'checkboxgroup' %}
-		#pragma message "'checkboxgroup' is not yet supported"
+		uint8_t array[] = {{item|defaulttobytearray}};
+		set_{{ item|getid|cvarname }}(array, sizeof(array));
 		{% endif %}
 	}
 	{% endif %}
@@ -211,17 +213,13 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 {% endmacro %}
 
 {% macro item_dict_size(item) %}
-	{% if item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
-		{{ filename|upper }}_MAX_STRING_LENGTH
-	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
-	{% if item['options'][0]['value'] is string %}
-		{{ filename|upper }}_MAX_STRING_LENGTH
-	{% else %}
-		4
-	{% endif %}
-	{% else %}
-		4
-	{% endif %}
+{% if item['type'] == 'input' %}
+{{ filename|upper }}_MAX_STRING_LENGTH
+{% elif item['type'] == 'select' or item['type'] == 'radiogroup' or item['type'] == 'checkboxgroup' %}
+{{ item|maxdictsize }}
+{% else %}
+4
+{% endif %}
 {% endmacro %}
 
 void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbound){
@@ -233,12 +231,12 @@ void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbou
 		{% for item in config %}
 		{% if item['type'] == 'section' %}
 		{% for item in item['items'] %}
-		+7+{{ item_dict_size(item) }}
+		+ 7 + {{ item_dict_size(item) }}
 		{% endfor %}
 		{% else %}
-		+7+{{ item_dict_size(item) }}
+		+ 7 + {{ item_dict_size(item) }}
 		{% endif %}
-		{% endfor %}
+		{%- endfor %}
 		, size_outbound);
 	}
 	else {
@@ -258,7 +256,7 @@ void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbou
 
 {% macro item_deinit(item) %}
 {% if 'appKey' in item %}
-	{% if item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
+	{% if item['type'] == 'input' %}
 	persist_write_string({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }});
 	if(_{{ item|getid|cvarname }}) free(_{{ item|getid|cvarname }});
 	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
@@ -273,7 +271,7 @@ void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbou
 	{% elif item['type'] == 'color' %}
 	persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }}.argb ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}.argb) : false;
 	{% elif item['type'] == 'checkboxgroup' %}
-	#pragma message "'checkboxgroup' is not yet supported"
+	persist_write_data({{ item|getid|cvarname|upper }}_PKEY, &_{{ item|getid|cvarname }}_data, sizeof({{ item|getid|cvarname }}Data));
 	{% endif %}
 {% endif %}
 {% endmacro %}
