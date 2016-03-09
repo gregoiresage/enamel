@@ -109,6 +109,8 @@ Call `python enamel.py --help` for help
 | `void enamel_deinit()` | Deinitialize Enamel and save the settings in the persistant storage |
 | `void enamel_register_custom_inbox_received( AppMessageInboxReceived received_callback )` | Register a custom received callback called when a setting is received |
 | `<type> get_appKeyId()` | Return the value for the setting `appKeyId` |
+| `<type> get_appKeyId(uint16_t index_)` | *Only relevant for `checkboxgroup`*. <br>Return the value at given index for the setting `appKeyId` |
+| `uint16_t get_appKeyId_count()` | *Only relevant for `checkboxgroup`*. <br>Return the number of values for the setting `appKeyId` |
 
 ## Type mapping
 
@@ -118,9 +120,9 @@ Call `python enamel.py --help` for help
 | `toggle` | `bool` |
 | `color` | `GColor` |
 | `select/radiogroup` | `char*` or `enum` |
-| `checkboxgroup` | not supported |
+| `checkboxgroup` | `char*` or `enum` |
 
-### Special case for `select` and `radiogroup`
+### Special case for `select`, `radiogroup` and `checkboxgroup`
 
 If the value of the options are `string` in the `config.json`, Enamel will generate a `char*` getter
 
