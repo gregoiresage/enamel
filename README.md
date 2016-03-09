@@ -31,7 +31,14 @@ You can focus on your watchapp/face, Enamel will do the rest !
 5. Launch your Pebble build : 2 files (enamel.c and enamel.h) should be generated in `build` and compiled
 
 # Getting Started (python)
-If you can't modify the wscript (Cloudpebble development) you can call directly the python script.<br>
+If you can't modify the wscript (Cloudpebble development) you can call directly the python script.
+
+Enamel needs the Jinja2 module for the code generation.
+Install the dependency with 
+```
+pip install Jinja2
+```
+
 The following command will generate 2 files (enamel.c and enamel.h), you just need to copy them in your project
 ```
 python enamel.py --appinfo /path/to/your/appinfo.json --config /path/to/your/config.json 
