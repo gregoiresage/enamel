@@ -89,7 +89,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generates C helpers from a Clay configuration file')
     parser.add_argument('--appinfo', action='store', default='appinfo.json', help='Path to appinfo.json')
     parser.add_argument('--config', action='store', default='src/js/config.json', help='Path to Clay configuration file') 
-    parser.add_argument('--folder', action='store', default='src/generated', help='Generation folder') 
+    parser.add_argument('--folder', action='store', default='.', help='Generation folder') 
     parser.add_argument('--filename', action='store', default='enamel', help='Name for the generated files without extension (default : enamel)') 
     result = parser.parse_args()
     generate(appinfo=result.appinfo, configFile=result.config, outputDir=result.folder, outputFileName=result.filename)
