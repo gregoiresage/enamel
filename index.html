@@ -178,6 +178,18 @@ The following command will generate 2 files (enamel.c and enamel.h) in <code>src
 <td>Return the value for the setting <code>appKeyId</code>
 </td>
 </tr>
+<tr>
+<td><code>&lt;type&gt; get_appKeyId(uint16_t index_)</code></td>
+<td>
+<em>Only relevant for <code>checkboxgroup</code></em>. Return the value at given index for the setting <code>appKeyId</code>
+</td>
+</tr>
+<tr>
+<td><code>uint16_t get_appKeyId_count()</code></td>
+<td>
+<em>Only relevant for <code>checkboxgroup</code></em>. Return the number of values for the setting setting <code>appKeyId</code>
+</td>
+</tr>
 </tbody>
 </table>
 
@@ -212,13 +224,15 @@ The following command will generate 2 files (enamel.c and enamel.h) in <code>src
 </tr>
 <tr>
 <td><code>checkboxgroup</code></td>
-<td>not supported</td>
+<td>
+<code>char*</code> or <code>enum</code>
+</td>
 </tr>
 </tbody>
 </table>
 
 <h3>
-<a id="special-case-for-select-and-radiogroup" class="anchor" href="#special-case-for-select-and-radiogroup" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Special case for <code>select</code> and <code>radiogroup</code>
+<a id="special-case-for-select-radiogroup-and-checkboxgroup" class="anchor" href="#special-case-for-select-radiogroup-and-checkboxgroup" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Special case for <code>select</code>, <code>radiogroup</code> and <code>checkboxgroup</code>
 </h3>
 
 <p>If the value of the options are <code>string</code> in the <code>config.json</code>, Enamel will generate a <code>char*</code> getter</p>
