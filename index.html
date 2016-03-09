@@ -75,7 +75,7 @@ ctx.pbl_program(<span class="pl-v">source</span><span class="pl-k">=</span>ctx.p
 <a id="getting-started-python" class="anchor" href="#getting-started-python" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Getting Started (python)</h1>
 
 <p>If you can't modify the wscript (Cloudpebble development) you can call directly the python script.<br>
-The following command will generate 2 files (enamel.c and enamel.h) in <code>src/generated</code>, you just need to copy them in your project</p>
+The following command will generate 2 files (enamel.c and enamel.h), you just need to copy them in your project</p>
 
 <pre><code>python enamel.py --appinfo /path/to/your/appinfo.json --config /path/to/your/config.json 
 </code></pre>
@@ -181,13 +181,13 @@ The following command will generate 2 files (enamel.c and enamel.h) in <code>src
 <tr>
 <td><code>&lt;type&gt; get_appKeyId(uint16_t index_)</code></td>
 <td>
-<em>Only relevant for <code>checkboxgroup</code></em>. Return the value at given index for the setting <code>appKeyId</code>
+<em>Only relevant for <code>checkboxgroup</code></em>. <br>Return the value at given index for the setting <code>appKeyId</code>
 </td>
 </tr>
 <tr>
 <td><code>uint16_t get_appKeyId_count()</code></td>
 <td>
-<em>Only relevant for <code>checkboxgroup</code></em>. Return the number of values for the setting setting <code>appKeyId</code>
+<em>Only relevant for <code>checkboxgroup</code></em>. <br>Return the number of values for the setting <code>appKeyId</code>
 </td>
 </tr>
 </tbody>
