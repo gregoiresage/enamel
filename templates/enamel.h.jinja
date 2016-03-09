@@ -34,8 +34,6 @@ typedef enum {
 } {{ item|getid|cvarname|upper }}Value;
 {{ item|getid|cvarname|upper }}Value get_{{ item|getid|cvarname }}(uint16_t index);
 {% endif %}
-{% else %}
-#error Unknown type '{{ item['type'] }}' for item '{{ item['appKey'] }}'
 {% endif %}
 {% endif %}
 {% endmacro %}
