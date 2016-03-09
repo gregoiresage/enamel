@@ -32,7 +32,7 @@ You can focus on your watchapp/face, Enamel will do the rest !
 
 # Getting Started (python)
 If you can't modify the wscript (Cloudpebble development) you can call directly the python script.<br>
-The following command will generate 2 files (enamel.c and enamel.h) in `src/generated`, you just need to copy them in your project
+The following command will generate 2 files (enamel.c and enamel.h), you just need to copy them in your project
 ```
 python enamel.py --appinfo /path/to/your/appinfo.json --config /path/to/your/config.json 
 ```
