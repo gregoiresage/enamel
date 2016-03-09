@@ -34,6 +34,13 @@ typedef enum {
 } {{ item|getid|cvarname|upper }}Value;
 {{ item|getid|cvarname|upper }}Value get_{{ item|getid|cvarname }}(uint16_t index);
 {% endif %}
+{% elif item['type'] == 'slider' %}
+{% if 'step' in item and '.' in item['step']|string %}
+#define {{ item|getid|cvarname|upper }}_PRECISION {{ 10**((item['step'] - item['step']|round(0, 'floor'))|string|length - 2) }}
+{% else %}
+#define {{ item|getid|cvarname|upper }}_PRECISION 1
+{% endif %}
+int32_t get_{{ item|getid|cvarname }}();
 {% endif %}
 {% endif %}
 {% endmacro %}

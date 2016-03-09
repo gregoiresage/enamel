@@ -17,7 +17,8 @@
     "enableBackground": 0,
     "background": 1,
     "font_size": 2,
-    "favorite_food": 3
+    "favorite_food": 3,
+    "slider": 4
   },
   "resources": {
     "media": []

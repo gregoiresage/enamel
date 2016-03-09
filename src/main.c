@@ -35,6 +35,8 @@ static void updateDisplay() {
     p = mystrcat(p,"\n");
   }
   text_layer_set_text(text_layer_2, favorite_food_string);
+
+  APP_LOG(0, "slider value=%ld precision=%d", get_slider(), SLIDER_PRECISION);
 }
 
 static void in_received_handler(DictionaryIterator *iter, void *context) {
