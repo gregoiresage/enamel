@@ -4,6 +4,16 @@
 
 static Window *window;
 static TextLayer *text_layer;
+static TextLayer *text_layer_2;
+
+static char favorite_food_string[100];
+
+static char* mystrcat( char* dest, const char* src )
+{
+  while (*dest) dest++;
+  while ((*dest++ = *src++));
+  return --dest;
+}
 
 static void updateDisplay() {
   if(get_enableBackground()) {
@@ -17,6 +27,14 @@ static void updateDisplay() {
     case FONT_SIZE_NORMAL : text_layer_set_font(text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD)); break;
     case FONT_SIZE_LARGE : text_layer_set_font(text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD)); break;
   }
+
+  favorite_food_string[0] = '\0';
+  char *p = favorite_food_string;
+  for(uint16_t i=0; i<get_favorite_food_count(); i++){
+    p = mystrcat(p,get_favorite_food(i));
+    p = mystrcat(p,"\n");
+  }
+  text_layer_set_text(text_layer_2, favorite_food_string);
 }
 
 static void in_received_handler(DictionaryIterator *iter, void *context) {
@@ -33,11 +51,19 @@ static void window_load(Window *window) {
   text_layer_set_text_alignment(text_layer, GTextAlignmentCenter);
   layer_add_child(window_layer, text_layer_get_layer(text_layer));
 
+  bounds.origin.y = 120;
+  text_layer_2 = text_layer_create(bounds);
+  text_layer_set_text(text_layer_2, favorite_food_string);
+  text_layer_set_background_color(text_layer_2, GColorClear);
+  text_layer_set_text_alignment(text_layer_2, GTextAlignmentLeft);
+  layer_add_child(window_layer, text_layer_get_layer(text_layer_2));
+
   updateDisplay();
 }
 
 static void window_unload(Window *window) {
   text_layer_destroy(text_layer);
+  text_layer_destroy(text_layer_2);
 }
 
 static void init(void) {

@@ -6,11 +6,13 @@ Enamel will :
 * save/load the value of the settings in the persistant storage automatically
 * provide a getter for each of your settings
 
+You can focus on your watchapp/face, Enamel will do the rest !
+
 ---
 
 # Getting Started (pebble wscript)
 1. You project must contain a valid configuration file in `src/js/config.json` (see https://github.com/pebble/clay)
-2. Extract [Enamel](https://github.com/gregoiresage/enamel/archive/develop.zip) at the root of your Pebble project or create a git submodule
+2. Extract [Enamel](https://github.com/gregoiresage/enamel/releases/latest) at the root of your Pebble project or create a git submodule
 3. Copy and paste the following line into the top of your `wscript` : 
   
   ``` python
@@ -30,7 +32,7 @@ Enamel will :
 
 # Getting Started (python)
 If you can't modify the wscript (Cloudpebble development) you can call directly the python script.<br>
-The following command will generate 2 files (enamel.c and enamel.h) in `src/generated`, you just need to copy them in your project
+The following command will generate 2 files (enamel.c and enamel.h), you just need to copy them in your project
 ```
 python enamel.py --appinfo /path/to/your/appinfo.json --config /path/to/your/config.json 
 ```
@@ -107,6 +109,8 @@ Call `python enamel.py --help` for help
 | `void enamel_deinit()` | Deinitialize Enamel and save the settings in the persistant storage |
 | `void enamel_register_custom_inbox_received( AppMessageInboxReceived received_callback )` | Register a custom received callback called when a setting is received |
 | `<type> get_appKeyId()` | Return the value for the setting `appKeyId` |
+| `<type> get_appKeyId(uint16_t index_)` | *Only relevant for `checkboxgroup`*. <br>Return the value at given index for the setting `appKeyId` |
+| `uint16_t get_appKeyId_count()` | *Only relevant for `checkboxgroup`*. <br>Return the number of values for the setting `appKeyId` |
 
 ## Type mapping
 
@@ -116,11 +120,11 @@ Call `python enamel.py --help` for help
 | `toggle` | `bool` |
 | `color` | `GColor` |
 | `select/radiogroup` | `char*` or `enum` |
-| `checkboxgroup` | not supported |
+| `checkboxgroup` | `char*` or `enum` |
 
-### Special case for `select` and `radiogroup`
+### Special case for `select`, `radiogroup` and `checkboxgroup`
 
-If the value of the options are `string` in the `config.json, Enamel will generate a `char*` getter
+If the value of the options are `string` in the `config.json`, Enamel will generate a `char*` getter
 
 If the value of the options are `integer`, Enamel will generate an `enum` mapping all the possible values for this setting and the getter will return this `enum`
 
