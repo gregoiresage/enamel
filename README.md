@@ -10,6 +10,12 @@ You can focus on your watchapp/face, Enamel will do the rest !
 
 ---
 
+# Demo
+
+You can find a basic demo project using Enamel [here](https://github.com/gregoiresage/demo-enamel)
+
+---
+
 # Getting Started (pebble wscript)
 1. You project must contain a valid configuration file in `src/js/config.json` (see https://github.com/pebble/clay)
 2. Extract [Enamel](https://github.com/gregoiresage/enamel/releases/latest) at the root of your Pebble project or create a git submodule
@@ -29,6 +35,10 @@ You can focus on your watchapp/face, Enamel will do the rest !
   ctx.pbl_program(source=ctx.path.ant_glob('src/**/*.c') + ['enamel.c'], target=app_elf)
   ```
 5. Launch your Pebble build : 2 files (enamel.c and enamel.h) should be generated in `build` and compiled
+
+>:warning:<br>
+>The first time you launch a build, you will get an error message because Jinja2 module is missing.<br>
+>Just follow the instructions to fix your environment.
 
 # Getting Started (python)
 If you can't modify the wscript (Cloudpebble development) you can call directly the python script.
