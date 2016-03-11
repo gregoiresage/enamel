@@ -128,6 +128,7 @@ Call `python enamel.py --help` for help
 | `color` | `GColor` |
 | `select/radiogroup` | `char*` or `enum` |
 | `checkboxgroup` | `char*` or `enum` |
+| `slider` | `int32_t` |
 
 ### Special case for `select`, `radiogroup` and `checkboxgroup`
 
@@ -177,5 +178,12 @@ switch(get_favorite_food()){
  case FAVORITE_FOOD_PIZZA : break; //do something
  case FAVORITE_FOOD_BURGER : break; //do something
 }
+```
+
+### Special case for `slider`
+
+Enamel will also generate a constant for your slider containing the 'precision' of your slider, e.g.
+```
+#define MY_SLIDER_PRECISION 100
 ```
 
