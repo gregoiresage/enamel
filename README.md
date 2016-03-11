@@ -10,6 +10,12 @@ You can focus on your watchapp/face, Enamel will do the rest !
 
 ---
 
+# Demo
+
+You can find a basic demo project using Enamel [here](https://github.com/gregoiresage/demo-enamel)
+
+---
+
 # Getting Started (pebble wscript)
 1. You project must contain a valid configuration file in `src/js/config.json` (see https://github.com/pebble/clay)
 2. Extract [Enamel](https://github.com/gregoiresage/enamel/releases/latest) at the root of your Pebble project or create a git submodule
@@ -30,8 +36,19 @@ You can focus on your watchapp/face, Enamel will do the rest !
   ```
 5. Launch your Pebble build : 2 files (enamel.c and enamel.h) should be generated in `build` and compiled
 
+>:warning:<br>
+>The first time you launch a build, you will get an error message because Jinja2 module is missing.<br>
+>Just follow the instructions to fix your environment.
+
 # Getting Started (python)
-If you can't modify the wscript (Cloudpebble development) you can call directly the python script.<br>
+If you can't modify the wscript (Cloudpebble development) you can call directly the python script.
+
+Enamel needs the Jinja2 module for the code generation.
+Install the dependency with 
+```
+pip install Jinja2
+```
+
 The following command will generate 2 files (enamel.c and enamel.h), you just need to copy them in your project
 ```
 python enamel.py --appinfo /path/to/your/appinfo.json --config /path/to/your/config.json 
@@ -121,6 +138,7 @@ Call `python enamel.py --help` for help
 | `color` | `GColor` |
 | `select/radiogroup` | `char*` or `enum` |
 | `checkboxgroup` | `char*` or `enum` |
+| `slider` | `int32_t` |
 
 ### Special case for `select`, `radiogroup` and `checkboxgroup`
 
@@ -170,5 +188,12 @@ switch(get_favorite_food()){
  case FAVORITE_FOOD_PIZZA : break; //do something
  case FAVORITE_FOOD_BURGER : break; //do something
 }
+```
+
+### Special case for `slider`
+
+Enamel will also generate a constant for your slider containing the 'precision' of your slider, e.g.
+```
+#define MY_SLIDER_PRECISION 100
 ```
 

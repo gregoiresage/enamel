@@ -60,6 +60,14 @@ GColor get_{{ item|getid|cvarname }}(){
 static void set_{{ item|getid|cvarname }}(uint8_t value){
 	_{{ item|getid|cvarname }}.argb = value;
 }
+{% elif item['type'] == 'slider' %}
+static int32_t _{{ item|getid|cvarname }};
+int32_t get_{{ item|getid|cvarname }}(){
+	return _{{ item|getid|cvarname }};
+}
+static void set_{{ item|getid|cvarname }}(int32_t value){
+	_{{ item|getid|cvarname }} = value;
+}
 {% elif item['type'] == 'checkboxgroup' %}
 typedef struct {
   uint16_t count;
@@ -138,6 +146,8 @@ static void set_{{ item|getid|cvarname }}(uint8_t* data_, uint16_t length_){
 	tuple ? set_{{ item|getid|cvarname }}(GColorFromHEX(tuple->value->int32).argb) : false;
 	{% elif item['type'] == 'toggle' %}
 	tuple ? set_{{ item|getid|cvarname }}(tuple->value->int32) : false;
+	{% elif item['type'] == 'slider' %}
+	tuple ? set_{{ item|getid|cvarname }}(tuple->value->int32) : false;
 	{% elif item['type'] == 'checkboxgroup' %}
 	tuple ? set_{{ item|getid|cvarname }}(tuple->value->data, tuple->length) : false;
 	{% endif %}
@@ -179,6 +189,8 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 		{% endif %}
 		{% elif item['type'] == 'color' %}
 		set_{{ item|getid|cvarname }}(persist_read_int({{ item|getid|cvarname|upper }}_PKEY));
+		{% elif item['type'] == 'slider' %}
+		set_{{ item|getid|cvarname }}(persist_read_int({{ item|getid|cvarname|upper }}_PKEY));
 		{% elif item['type'] == 'toggle' %}
 		set_{{ item|getid|cvarname }}(persist_read_bool({{ item|getid|cvarname|upper }}_PKEY));
 		{% elif item['type'] == 'checkboxgroup' %}
@@ -200,6 +212,12 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 		set_{{ item|getid|cvarname }}(GColorFromHEX(0x{{item['defaultValue']}}).argb);
 		{% else %}
 		set_{{ item|getid|cvarname }}(GColorFromHEX({{item['defaultValue']}}).argb);
+		{% endif %}
+		{% elif item['type'] == 'slider' %}
+		{% if 'step' in item and '.' in item['step']|string %}
+		set_{{ item|getid|cvarname }}({{ (item['defaultValue'] * 10**((item['step'] - item['step']|round(0, 'floor'))|string|length - 2))|int }});
+		{% else %}
+		set_{{ item|getid|cvarname }}({{item['defaultValue']|lower}});
 		{% endif %}
 		{% elif item['type'] == 'toggle' %}
 		set_{{ item|getid|cvarname }}({{item['defaultValue']|lower}});
@@ -270,6 +288,8 @@ void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbou
 	persist_read_bool({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }} ? persist_write_bool({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
 	{% elif item['type'] == 'color' %}
 	persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }}.argb ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}.argb) : false;
+	{% elif item['type'] == 'slider' %}
+	persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }} ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
 	{% elif item['type'] == 'checkboxgroup' %}
 	persist_write_data({{ item|getid|cvarname|upper }}_PKEY, &_{{ item|getid|cvarname }}_data, sizeof({{ item|getid|cvarname }}Data));
 	{% endif %}
