@@ -48,6 +48,13 @@
 <hr>
 
 <h1>
+<a id="demo" class="anchor" href="#demo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Demo</h1>
+
+<p>You can find a basic demo project using Enamel <a href="https://github.com/gregoiresage/demo-enamel">here</a></p>
+
+<hr>
+
+<h1>
 <a id="getting-started-pebble-wscript" class="anchor" href="#getting-started-pebble-wscript" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Getting Started (pebble wscript)</h1>
 
 <ol>
@@ -74,8 +81,15 @@ ctx.pbl_program(<span class="pl-v">source</span><span class="pl-k">=</span>ctx.p
 <h1>
 <a id="getting-started-python" class="anchor" href="#getting-started-python" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Getting Started (python)</h1>
 
-<p>If you can't modify the wscript (Cloudpebble development) you can call directly the python script.<br>
-The following command will generate 2 files (enamel.c and enamel.h), you just need to copy them in your project</p>
+<p>If you can't modify the wscript (Cloudpebble development) you can call directly the python script.</p>
+
+<p>Enamel needs the Jinja2 module for the code generation.
+Install the dependency with </p>
+
+<pre><code>pip install Jinja2
+</code></pre>
+
+<p>The following command will generate 2 files (enamel.c and enamel.h), you just need to copy them in your project</p>
 
 <pre><code>python enamel.py --appinfo /path/to/your/appinfo.json --config /path/to/your/config.json 
 </code></pre>
@@ -228,6 +242,10 @@ The following command will generate 2 files (enamel.c and enamel.h), you just ne
 <code>char*</code> or <code>enum</code>
 </td>
 </tr>
+<tr>
+<td><code>slider</code></td>
+<td><code>int32_t</code></td>
+</tr>
 </tbody>
 </table>
 
@@ -278,6 +296,15 @@ FAVORITE_FOODValue <span class="pl-en">get_favorite_food</span>();</pre></div>
  <span class="pl-k">case</span> FAVORITE_FOOD_PIZZA : <span class="pl-k">break</span>; <span class="pl-c">//do something</span>
  <span class="pl-k">case</span> FAVORITE_FOOD_BURGER : <span class="pl-k">break</span>; <span class="pl-c">//do something</span>
 }</pre></div>
+
+<h3>
+<a id="special-case-for-slider" class="anchor" href="#special-case-for-slider" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Special case for <code>slider</code>
+</h3>
+
+<p>Enamel will also generate a constant for your slider containing the 'precision' of your slider, e.g.</p>
+
+<pre><code>#define MY_SLIDER_PRECISION 100
+</code></pre>
       </section>
       <footer>
         <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
