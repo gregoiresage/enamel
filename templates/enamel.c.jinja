@@ -1,3 +1,7 @@
+/**
+ * This file was generated with Enamel : http://gregoiresage.github.io/enamel
+ */
+
 #include <pebble.h>
 #include "{{ filename }}.h"
 
@@ -5,10 +9,10 @@
 #define {{ filename|upper }}_MAX_STRING_LENGTH 30
 #endif
 
-static AppMessageInboxReceived custom_received_callback; 
-
 {% macro item_accessors_code(item) %}
 {% if 'appKey' in item %}
+// -----------------------------------------------------
+// Getter for '{{ item|getid }}'
 #define {{ item|getid|cvarname|upper }}_PKEY {{ appinfo['appKeys'][item['appKey']] }}
 {% if item['type'] == 'toggle' %}
 static bool _{{ item|getid|cvarname }};
@@ -20,16 +24,23 @@ static void set_{{ item|getid|cvarname }}(bool value){
 }
 {% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 {% if item['options'][0]['value'] is string %}
-static char* _{{ item|getid|cvarname }}; 
-char* get_{{ item|getid|cvarname }}(){
-	return _{{ item|getid|cvarname }};
+static uint16_t _{{ item|getid|cvarname }};
+static const char* {{ item|getid|cvarname }}_values[] = {
+{%- for option in item['options'] -%}
+	"{{ option['value'] }}",
+{%- endfor -%}
+};
+const char* get_{{ item|getid|cvarname }}(){
+	return {{ item|getid|cvarname }}_values[_{{ item|getid|cvarname }}];
 }
 static void set_{{ item|getid|cvarname }}(char* value){
-	if(_{{ item|getid|cvarname }}) free( _{{ item|getid|cvarname }});
-	uint32_t size = strlen(value);
-	_{{ item|getid|cvarname }} = malloc(size + 1);
-	_{{ item|getid|cvarname }}[size] = 0;
-	strncpy(_{{ item|getid|cvarname }}, value, size);
+	for(uint16_t i=0; i<{{ item['options']|length }}; i++){
+		if(strcmp(value, {{ item|getid|cvarname }}_values[i]) == 0){
+			_{{ item|getid|cvarname }} = i;
+			return;
+		}
+	}
+	_{{ item|getid|cvarname }} = 0;
 }
 {% else %}
 {{ item|getid|cvarname|upper }}Value _{{ item|getid|cvarname }};
@@ -42,7 +53,7 @@ static void set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Value v
 {% endif %}
 {% elif item['type'] == 'input' %}
 static char* _{{ item|getid|cvarname }}; 
-char* get_{{ item|getid|cvarname }}(){
+const char* get_{{ item|getid|cvarname }}(){
 	return _{{ item|getid|cvarname }};
 }
 static void set_{{ item|getid|cvarname }}(char* value){
@@ -80,9 +91,9 @@ typedef struct {
 static {{ item|getid|cvarname }}Data _{{ item|getid|cvarname }}_data;
 {% if item['options'][0]['value'] is string %}
 static const char* {{ item|getid|cvarname }}_values[] = {
-{% for option in item['options'] %}
+{%- for option in item['options'] -%}
 	"{{ option['value'] }}",
-{% endfor %}
+{%- endfor -%}
 };
 const char* get_{{ item|getid|cvarname }}(uint16_t index_){
 	if(index_ < _{{ item|getid|cvarname }}_data.count)
@@ -118,17 +129,19 @@ static void set_{{ item|getid|cvarname }}(uint8_t* data_, uint16_t length_){
 	_{{ item|getid|cvarname }}_data.count = count;
 }
 {% endif %}
-{% endif %}
-{%- endmacro %}
+// -----------------------------------------------------
 
-{% for item in config %}
+{% endif %}
+{%- endmacro -%}
+
+{% for item in config -%}
 {% if item['type'] == 'section' %}
 {% for item in item['items'] %}
 {{ item_accessors_code(item) }}
-{% endfor %}
+{%- endfor %}
 {% else %}
 {{ item_accessors_code(item) }}
-{% endif %}
+{%- endif %}
 {% endfor %}
 
 {% macro item_in_received_handler(item) %}
@@ -152,7 +165,9 @@ static void set_{{ item|getid|cvarname }}(uint8_t* data_, uint16_t length_){
 	tuple ? set_{{ item|getid|cvarname }}(tuple->value->data, tuple->length) : false;
 	{% endif %}
 {% endif %}
-{% endmacro %}
+{% endmacro -%}
+
+static AppMessageInboxReceived custom_received_callback; 
 
 static void in_received_handler(DictionaryIterator *iter, void *context) {
 	Tuple *tuple = NULL;
@@ -160,10 +175,10 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 {% if item['type'] == 'section' %}
 {% for item in item['items'] %}
 {{ item_in_received_handler(item) }}
-{% endfor %}
+{%- endfor %}
 {% else %}
 {{ item_in_received_handler(item) }}
-{% endif %}
+{%- endif %}
 {% endfor %}
 	if(custom_received_callback) {
 		custom_received_callback(iter, context);
@@ -180,10 +195,7 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 		set_{{ item|getid|cvarname }}(tmp);
 		{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 		{% if item['options'][0]['value'] is string %}
-		char tmp[{{ filename|upper }}_MAX_STRING_LENGTH];
-		memset(tmp, 0, {{ filename|upper }}_MAX_STRING_LENGTH);
-		persist_read_string({{ item|getid|cvarname|upper }}_PKEY, tmp, {{ filename|upper }}_MAX_STRING_LENGTH);
-		set_{{ item|getid|cvarname }}(tmp);
+		_{{ item|getid|cvarname }} = (uint16_t)persist_read_int({{ item|getid|cvarname|upper }}_PKEY);
 		{% else %}
 		set_{{ item|getid|cvarname }}(persist_read_int({{ item|getid|cvarname|upper }}_PKEY));
 		{% endif %}
@@ -228,7 +240,7 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 	}
 	{% endif %}
 {% endif %}
-{% endmacro %}
+{% endmacro -%}
 
 {% macro item_dict_size(item) %}
 {% if item['type'] == 'input' %}
@@ -238,23 +250,23 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 {% else %}
 4
 {% endif %}
-{% endmacro %}
+{% endmacro -%}
 
 void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbound){
 	custom_received_callback = NULL;
 	app_message_register_inbox_received(in_received_handler);
 
 	if(size_inbound == 0) {
-		app_message_open(1
+		app_message_open( 1
 		{% for item in config %}
 		{% if item['type'] == 'section' %}
 		{% for item in item['items'] %}
-		+ 7 + {{ item_dict_size(item) }}
-		{% endfor %}
-		{% else %}
-		+ 7 + {{ item_dict_size(item) }}
-		{% endif %}
+			+ 7 + {{ item_dict_size(item) }}
 		{%- endfor %}
+		{% else %}
+			+ 7 + {{ item_dict_size(item) }}
+		{%- endif %}
+		{% endfor %}
 		, size_outbound);
 	}
 	else {
@@ -265,10 +277,10 @@ void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbou
 {% if item['type'] == 'section' %}
 {% for item in item['items'] %}
 {{ item_init(item) }}
-{% endfor %}
+{%- endfor %}
 {% else %}
 {{ item_init(item) }}
-{% endif %}
+{%- endif %}
 {% endfor %}
 }
 
@@ -279,8 +291,7 @@ void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbou
 	if(_{{ item|getid|cvarname }}) free(_{{ item|getid|cvarname }});
 	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 	{% if item['options'][0]['value'] is string %}
-	persist_write_string({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }});
-	if(_{{ item|getid|cvarname }}) free(_{{ item|getid|cvarname }});
+	persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != (int32_t)_{{ item|getid|cvarname }} ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
 	{% else %}
 	persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }} ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
 	{% endif %}
@@ -294,17 +305,17 @@ void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbou
 	persist_write_data({{ item|getid|cvarname|upper }}_PKEY, &_{{ item|getid|cvarname }}_data, sizeof({{ item|getid|cvarname }}Data));
 	{% endif %}
 {% endif %}
-{% endmacro %}
+{% endmacro -%}
 
 void {{ filename }}_deinit(){
 {% for item in config %}
 {% if item['type'] == 'section' %}
 {% for item in item['items'] %}
 {{ item_deinit(item) }}
-{% endfor %}
+{%- endfor %}
 {% else %}
 {{ item_deinit(item) }}
-{% endif %}
+{%- endif %}
 {% endfor %}
 	app_message_deregister_callbacks();
 	custom_received_callback = NULL;
