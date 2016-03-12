@@ -18,8 +18,8 @@ typedef enum {
 {% endif %}
 {% elif item['type'] == 'toggle' %}
 bool get_{{ item|getid|cvarname }}();
-{% elif item['type'] == 'heading' or item['type'] == 'text' or item['type'] == 'input' %}
-char* get_{{ item|getid|cvarname }}();
+{% elif item['type'] == 'input' %}
+const char* get_{{ item|getid|cvarname }}();
 {% elif item['type'] == 'color' %}
 GColor get_{{ item|getid|cvarname }}();
 {% elif item['type'] == 'checkboxgroup' %}
