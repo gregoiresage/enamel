@@ -57,7 +57,7 @@ def generate(appinfo='appinfo.json', configFile='src/js/config.json', outputDir=
     if not os.path.exists(outputDir):
         os.makedirs(outputDir)
 
-    # crete jinja environment
+    # create jinja environment
     env = Environment(loader = FileSystemLoader([os.path.join(os.path.dirname(__file__), 'templates')]), trim_blocks=True, lstrip_blocks=True)
 
     # add custom filters
@@ -66,11 +66,11 @@ def generate(appinfo='appinfo.json', configFile='src/js/config.json', outputDir=
     env.filters['maxdictsize']  = maxdictsize
     env.filters['defaulttobytearray'] = defaulttobytearray
 
-    # loads appinfo file
+    # load appinfo file
     appinfo_content=open(appinfo)
     appinfo_content=json.load(appinfo_content)
 
-    # loads config file
+    # load config file
     config_content=open(configFile)
     config_content=json.load(config_content)
 
