@@ -1,3 +1,7 @@
+/**
+ * This file was generated with Enamel : http://gregoiresage.github.io/enamel
+ */
+
 #ifndef {{ filename }}_h
 #define {{ filename }}_h
 
@@ -5,6 +9,8 @@
 
 {% macro item_header(item) %}
 {% if 'appKey' in item %}
+// -----------------------------------------------------
+// Getter for '{{ item|getid }}'
 {% if item['type'] == 'select' or item['type'] == 'radiogroup' %}
 {% if item['options'][0]['value'] is string %}
 const char* get_{{ item|getid|cvarname }}();
@@ -42,18 +48,20 @@ typedef enum {
 {% endif %}
 int32_t get_{{ item|getid|cvarname }}();
 {% endif %}
+// -----------------------------------------------------
+
 {% endif %}
-{% endmacro %}
+{% endmacro -%}
 
 {% for item in config %}
 {% if item['type'] == 'section' %}
 {% for item in item['items'] %}
 {{ item_header(item) }}
-{% endfor %}
+{%- endfor %}
 {% else %}
 {{ item_header(item) }}
-{% endif %}
-{% endfor %}
+{%- endif %}
+{% endfor -%}
 
 void {{ filename }}_register_custom_inbox_received(AppMessageInboxReceived received_callback); 
 
