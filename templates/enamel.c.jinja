@@ -21,7 +21,7 @@ static void set_{{ item|getid|cvarname }}(bool value){
 {% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 {% if item['options'][0]['value'] is string %}
 static char* _{{ item|getid|cvarname }}; 
-char* get_{{ item|getid|cvarname }}(){
+const char* get_{{ item|getid|cvarname }}(){
 	return _{{ item|getid|cvarname }};
 }
 static void set_{{ item|getid|cvarname }}(char* value){

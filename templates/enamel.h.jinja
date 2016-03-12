@@ -7,7 +7,7 @@
 {% if 'appKey' in item %}
 {% if item['type'] == 'select' or item['type'] == 'radiogroup' %}
 {% if item['options'][0]['value'] is string %}
-char* get_{{ item|getid|cvarname }}();
+const char* get_{{ item|getid|cvarname }}();
 {% else %}
 typedef enum {
 {% for option in item['options']: %}
