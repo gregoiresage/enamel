@@ -13,32 +13,32 @@
 // Getter for '{{ item|getid }}'
 {% if item['type'] == 'select' or item['type'] == 'radiogroup' %}
 {% if item['options'][0]['value'] is string %}
-const char* get_{{ item|getid|cvarname }}();
+const char* {{ filename }}_get_{{ item|getid|cvarname }}();
 {% else %}
 typedef enum {
 {% for option in item['options']: %}
 	{{ item|getid|cvarname|upper }}_{{ option['label']|cvarname|upper }} = {{ option['value'] }},
 {% endfor %}
 } {{ item|getid|cvarname|upper }}Value;
-{{ item|getid|cvarname|upper }}Value get_{{ item|getid|cvarname }}();
+{{ item|getid|cvarname|upper }}Value {{ filename }}_get_{{ item|getid|cvarname }}();
 {% endif %}
 {% elif item['type'] == 'toggle' %}
-bool get_{{ item|getid|cvarname }}();
+bool {{ filename }}_get_{{ item|getid|cvarname }}();
 {% elif item['type'] == 'input' %}
-const char* get_{{ item|getid|cvarname }}();
+const char* {{ filename }}_get_{{ item|getid|cvarname }}();
 {% elif item['type'] == 'color' %}
-GColor get_{{ item|getid|cvarname }}();
+GColor {{ filename }}_get_{{ item|getid|cvarname }}();
 {% elif item['type'] == 'checkboxgroup' %}
-uint16_t get_{{ item|getid|cvarname }}_count();
+uint16_t {{ filename }}_get_{{ item|getid|cvarname }}_count();
 {% if item['options'][0]['value'] is string %}
-const char* get_{{ item|getid|cvarname }}(uint16_t index);
+const char* {{ filename }}_get_{{ item|getid|cvarname }}(uint16_t index);
 {% else %}
 typedef enum {
 {% for option in item['options']: %}
 	{{ item|getid|cvarname|upper }}_{{ option['label']|cvarname|upper }} = {{ option['value'] }},
 {% endfor %}
 } {{ item|getid|cvarname|upper }}Value;
-{{ item|getid|cvarname|upper }}Value get_{{ item|getid|cvarname }}(uint16_t index);
+{{ item|getid|cvarname|upper }}Value {{ filename }}_get_{{ item|getid|cvarname }}(uint16_t index);
 {% endif %}
 {% elif item['type'] == 'slider' %}
 {% if 'step' in item and '.' in item['step']|string %}
@@ -46,7 +46,7 @@ typedef enum {
 {% else %}
 #define {{ item|getid|cvarname|upper }}_PRECISION 1
 {% endif %}
-int32_t get_{{ item|getid|cvarname }}();
+int32_t {{ filename }}_get_{{ item|getid|cvarname }}();
 {% endif %}
 // -----------------------------------------------------
 

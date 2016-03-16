@@ -16,7 +16,7 @@
 #define {{ item|getid|cvarname|upper }}_PKEY {{ appinfo['appKeys'][item['appKey']] }}
 {% if item['type'] == 'toggle' %}
 static bool _{{ item|getid|cvarname }};
-bool get_{{ item|getid|cvarname }}(){
+bool {{ filename }}_get_{{ item|getid|cvarname }}(){
 	return _{{ item|getid|cvarname }};
 }
 static void set_{{ item|getid|cvarname }}(bool value){
@@ -30,7 +30,7 @@ static const char* {{ item|getid|cvarname }}_values[] = {
 	"{{ option['value'] }}",
 {%- endfor -%}
 };
-const char* get_{{ item|getid|cvarname }}(){
+const char* {{ filename }}_get_{{ item|getid|cvarname }}(){
 	return {{ item|getid|cvarname }}_values[_{{ item|getid|cvarname }}];
 }
 static void set_{{ item|getid|cvarname }}(char* value){
@@ -44,7 +44,7 @@ static void set_{{ item|getid|cvarname }}(char* value){
 }
 {% else %}
 {{ item|getid|cvarname|upper }}Value _{{ item|getid|cvarname }};
-{{ item|getid|cvarname|upper }}Value get_{{ item|getid|cvarname }}(){
+{{ item|getid|cvarname|upper }}Value {{ filename }}_get_{{ item|getid|cvarname }}(){
 	return _{{ item|getid|cvarname }};
 }
 static void set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Value value){
@@ -53,7 +53,7 @@ static void set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Value v
 {% endif %}
 {% elif item['type'] == 'input' %}
 static char* _{{ item|getid|cvarname }}; 
-const char* get_{{ item|getid|cvarname }}(){
+const char* {{ filename }}_get_{{ item|getid|cvarname }}(){
 	return _{{ item|getid|cvarname }};
 }
 static void set_{{ item|getid|cvarname }}(char* value){
@@ -65,7 +65,7 @@ static void set_{{ item|getid|cvarname }}(char* value){
 }
 {% elif item['type'] == 'color' %}
 static GColor _{{ item|getid|cvarname }};
-GColor get_{{ item|getid|cvarname }}(){
+GColor {{ filename }}_get_{{ item|getid|cvarname }}(){
 	return _{{ item|getid|cvarname }};
 }
 static void set_{{ item|getid|cvarname }}(uint8_t value){
@@ -73,7 +73,7 @@ static void set_{{ item|getid|cvarname }}(uint8_t value){
 }
 {% elif item['type'] == 'slider' %}
 static int32_t _{{ item|getid|cvarname }};
-int32_t get_{{ item|getid|cvarname }}(){
+int32_t {{ filename }}_get_{{ item|getid|cvarname }}(){
 	return _{{ item|getid|cvarname }};
 }
 static void set_{{ item|getid|cvarname }}(int32_t value){
@@ -95,19 +95,19 @@ static const char* {{ item|getid|cvarname }}_values[] = {
 	"{{ option['value'] }}",
 {%- endfor -%}
 };
-const char* get_{{ item|getid|cvarname }}(uint16_t index_){
+const char* {{ filename }}_get_{{ item|getid|cvarname }}(uint16_t index_){
 	if(index_ < _{{ item|getid|cvarname }}_data.count)
 		return {{ item|getid|cvarname }}_values[_{{ item|getid|cvarname }}_data.values[index_]];
 	return 0;
 }
 {% else %}
-{{ item|getid|cvarname|upper }}Value get_{{ item|getid|cvarname }}(uint16_t index_){
+{{ item|getid|cvarname|upper }}Value {{ filename }}_get_{{ item|getid|cvarname }}(uint16_t index_){
 	if(index_ < _{{ item|getid|cvarname }}_data.count)
 		return _{{ item|getid|cvarname }}_data.values[index_];
 	return 0;
 }
 {% endif %}
-uint16_t get_{{ item|getid|cvarname }}_count(){
+uint16_t {{ filename }}_get_{{ item|getid|cvarname }}_count(){
 	return _{{ item|getid|cvarname }}_data.count;
 }
 static void set_{{ item|getid|cvarname }}(uint8_t* data_, uint16_t length_){
