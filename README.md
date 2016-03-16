@@ -89,8 +89,8 @@ Call `python enamel.py --help` for help
 
   ``` c
   static void in_received_handler(DictionaryIterator *iter, void *context) {
-    APP_LOG(0, "Settings received %d", get_myinteger());
-    window_set_background_color(window, get_background());
+    APP_LOG(0, "Settings received %d", enamel_get_myinteger());
+    window_set_background_color(window, enamel_get_background());
     // do what you want here 
     // you will probably udpate your textlayers, colors, ... with the new settings
     // and mark your layers dirty
@@ -111,7 +111,7 @@ Call `python enamel.py --help` for help
 6. Get the value of your setting with :
   
   ``` c
-  get_Mysetting(); // where 'Mysetting' is an appKey in your configuration file
+  enamel_get_Mysetting(); // where 'Mysetting' is an appKey in your configuration file
   ```
 
 ---
@@ -125,15 +125,15 @@ Call `python enamel.py --help` for help
 | `void enamel_init(const uint32_t size_inbound, const uint32_t size_outbound)` | Initialize Enamel. <br>If `size_inbound` is `0`, Enamel will calculate the inbound size automatically for you |
 | `void enamel_deinit()` | Deinitialize Enamel and save the settings in the persistant storage |
 | `void enamel_register_custom_inbox_received( AppMessageInboxReceived received_callback )` | Register a custom received callback called when a setting is received |
-| `<type> get_appKeyId()` | Return the value for the setting `appKeyId` |
-| `<type> get_appKeyId(uint16_t index_)` | *Only relevant for `checkboxgroup`*. <br>Return the value at given index for the setting `appKeyId` |
-| `uint16_t get_appKeyId_count()` | *Only relevant for `checkboxgroup`*. <br>Return the number of values for the setting `appKeyId` |
+| `<type> enamel_get_<appKeyId>()` | Return the value for the setting `appKeyId` |
+| `<type> enamel_get_<appKeyId>(uint16_t index_)` | *Only relevant for `checkboxgroup`*. <br>Return the value at given index for the setting `appKeyId` |
+| `uint16_t enamel_get_<appKeyId>_count()` | *Only relevant for `checkboxgroup`*. <br>Return the number of values for the setting `appKeyId` |
 
 ## Type mapping
 
 | Clay Type | Type returned by the getter |
 |--------|---------|
-| `heading/text/input` | `char*` |
+| `input` | `char*` |
 | `toggle` | `bool` |
 | `color` | `GColor` |
 | `select/radiogroup` | `char*` or `enum` |
@@ -178,12 +178,12 @@ typedef enum {
 	FAVORITE_FOOD_PIZZA = 1,
 	FAVORITE_FOOD_BURGER = 2,
 } FAVORITE_FOODValue;
-FAVORITE_FOODValue get_favorite_food();
+FAVORITE_FOODValue enamel_get_favorite_food();
 ```
 
 You can then easily code switch case for this setting
 ``` c
-switch(get_favorite_food()){
+switch(enamel_get_favorite_food()){
  case FAVORITE_FOOD_SUSHI : break; //do something
  case FAVORITE_FOOD_PIZZA : break; //do something
  case FAVORITE_FOOD_BURGER : break; //do something
