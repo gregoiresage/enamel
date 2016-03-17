@@ -51,6 +51,12 @@ def defaulttobytearray(item):
         res += '}'
     return res
 
+def removeComments(string):
+    """From http://stackoverflow.com/questions/2319019/using-regex-to-remove-comments-from-source-files"""
+    string = re.sub(re.compile("/\*.*?\*/",re.DOTALL ) ,"" ,string) # remove all occurance streamed comments (/*COMMENT */) from string
+    string = re.sub(re.compile("//.*?\n" ) ,"" ,string) # remove all occurance singleline comments (//COMMENT\n ) from string
+    return string
+
 def generate(appinfo='appinfo.json', configFile='src/js/config.json', outputDir='src/generated', outputFileName='enamel'):
     """Generates C helpers from a Clay configuration file"""
     # create output folder
@@ -72,7 +78,17 @@ def generate(appinfo='appinfo.json', configFile='src/js/config.json', outputDir=
 
     # load config file
     config_content=open(configFile)
-    config_content=json.load(config_content)
+    if configFile.endswith('.json') :
+        # simply load the json file
+        config_content=json.load(config_content)
+    else :
+        # Here we have a js file from Cloudpebble
+        config_content=config_content.read()
+        # Remove comments from js
+        config_content=removeComments(config_content)
+        # Export content of module.exports = [];
+        config_content = re.findall('\s*module\.exports\s*=(.*);\s*',config_content,re.DOTALL)[0]
+        config_content=json.loads(config_content)
 
     # render templates
     for template in ['enamel.h.jinja', 'enamel.c.jinja'] : 
