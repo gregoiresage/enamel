@@ -291,16 +291,16 @@ void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbou
 	if(_{{ item|getid|cvarname }}) free(_{{ item|getid|cvarname }});
 	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 	{% if item['options'][0]['value'] is string %}
-	persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != (int32_t)_{{ item|getid|cvarname }} ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
+	!persist_exists({{ item|getid|cvarname|upper }}_PKEY) || (persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != (int32_t)_{{ item|getid|cvarname }}) ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
 	{% else %}
-	persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }} ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
+	!persist_exists({{ item|getid|cvarname|upper }}_PKEY) || (persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }}) ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
 	{% endif %}
 	{% elif item['type'] == 'toggle' %}
-	persist_read_bool({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }} ? persist_write_bool({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
+	!persist_exists({{ item|getid|cvarname|upper }}_PKEY) || (persist_read_bool({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }}) ? persist_write_bool({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
 	{% elif item['type'] == 'color' %}
-	persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }}.argb ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}.argb) : false;
+	!persist_exists({{ item|getid|cvarname|upper }}_PKEY) || (persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }}.argb) ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}.argb) : false;
 	{% elif item['type'] == 'slider' %}
-	persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }} ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
+	!persist_exists({{ item|getid|cvarname|upper }}_PKEY) || (persist_read_int({{ item|getid|cvarname|upper }}_PKEY) != _{{ item|getid|cvarname }}) ? persist_write_int({{ item|getid|cvarname|upper }}_PKEY, _{{ item|getid|cvarname }}) : false;
 	{% elif item['type'] == 'checkboxgroup' %}
 	persist_write_data({{ item|getid|cvarname|upper }}_PKEY, &_{{ item|getid|cvarname }}_data, sizeof({{ item|getid|cvarname }}Data));
 	{% endif %}
