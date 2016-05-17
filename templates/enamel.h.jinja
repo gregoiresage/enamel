@@ -63,10 +63,12 @@ int32_t {{ filename }}_get_{{ item|getid|cvarname }}();
 {%- endif %}
 {% endfor -%}
 
-void {{ filename }}_register_custom_inbox_received(AppMessageInboxReceived received_callback); 
+void {{ filename }}_init();
 
-void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbound);
+void {{ filename }}_app_message_open(const uint32_t size_inbound, const uint32_t size_outbound, AppMessageInboxReceived received_callback); 
 
 void {{ filename }}_deinit();
+
+void {{ filename }}_inbox_received_handle(DictionaryIterator *iter, void *context); 
 
 #endif
