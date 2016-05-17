@@ -9,6 +9,8 @@
 #define {{ filename|upper }}_MAX_STRING_LENGTH 30
 #endif
 
+static AppMessageInboxReceived custom_received_callback; 
+
 {% macro item_accessors_code(item) %}
 {% if 'appKey' in item %}
 // -----------------------------------------------------
@@ -167,24 +169,6 @@ static void set_{{ item|getid|cvarname }}(uint8_t* data_, uint16_t length_){
 {% endif %}
 {% endmacro -%}
 
-static AppMessageInboxReceived custom_received_callback; 
-
-static void in_received_handler(DictionaryIterator *iter, void *context) {
-	Tuple *tuple = NULL;
-{% for item in config %}
-{% if item['type'] == 'section' %}
-{% for item in item['items'] %}
-{{ item_in_received_handler(item) }}
-{%- endfor %}
-{% else %}
-{{ item_in_received_handler(item) }}
-{%- endif %}
-{% endfor %}
-	if(custom_received_callback) {
-		custom_received_callback(iter, context);
-	}
-}
-
 {% macro item_init(item) %}
 {% if 'appKey' in item %}
 	if (persist_exists({{ item|getid|cvarname|upper }}_PKEY)) {
@@ -252,27 +236,7 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 {% endif %}
 {% endmacro -%}
 
-void {{ filename }}_init(const uint32_t size_inbound, const uint32_t size_outbound){
-	custom_received_callback = NULL;
-	app_message_register_inbox_received(in_received_handler);
-
-	if(size_inbound == 0) {
-		app_message_open( 1
-		{% for item in config %}
-		{% if item['type'] == 'section' %}
-		{% for item in item['items'] %}
-			{{ item_dict_size(item) }}
-		{%- endfor %}
-		{% else %}
-			{{ item_dict_size(item) }}
-		{%- endif %}
-		{% endfor %}
-		, size_outbound);
-	}
-	else {
-		app_message_open(size_inbound, size_outbound);
-	}
-	
+void {{ filename }}_init(){
 {% for item in config %}
 {% if item['type'] == 'section' %}
 {% for item in item['items'] %}
@@ -321,6 +285,44 @@ void {{ filename }}_deinit(){
 	custom_received_callback = NULL;
 }
 
-void {{ filename }}_register_custom_inbox_received(AppMessageInboxReceived received_callback) {
+void enamel_inbox_received_handle(DictionaryIterator *iter, void *context) {
+	Tuple *tuple = NULL;
+{% for item in config %}
+{% if item['type'] == 'section' %}
+{% for item in item['items'] %}
+{{ item_in_received_handler(item) }}
+{%- endfor %}
+{% else %}
+{{ item_in_received_handler(item) }}
+{%- endif %}
+{% endfor %}
+}
+
+static void in_received_handler(DictionaryIterator *iter, void *context) {
+	enamel_inbox_received_handle(iter, context);
+	if(custom_received_callback) {
+		custom_received_callback(iter, context);
+	}
+}
+
+void {{ filename }}_app_message_open(const uint32_t size_inbound, const uint32_t size_outbound, AppMessageInboxReceived received_callback){
 	custom_received_callback = received_callback;
+	app_message_register_inbox_received(in_received_handler);
+
+	if(size_inbound == 0) {
+		app_message_open( 1
+		{% for item in config %}
+		{% if item['type'] == 'section' %}
+		{% for item in item['items'] %}
+			{{ item_dict_size(item) }}
+		{%- endfor %}
+		{% else %}
+			{{ item_dict_size(item) }}
+		{%- endif %}
+		{% endfor %}
+		, size_outbound);
+	}
+	else {
+		app_message_open(size_inbound, size_outbound);
+	}
 }
