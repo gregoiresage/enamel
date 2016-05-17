@@ -70,7 +70,10 @@ Call `python enamel.py --help` for help
   ``` c
   static void init(void) {
     // Initialize Enamel to register App Message handlers and restores settings
-    enamel_init(0, 0);
+    enamel_init();
+    
+    // Let enamel init the appmessage framework
+    enamel_app_message_open(0, 0, NULL); 
     
     ...
   }
@@ -100,10 +103,10 @@ Call `python enamel.py --help` for help
   
   static void init(void) {
     // Initialize Enamel to register App Message handlers and restores settings
-    enamel_init(0, 0);
+    enamel_init();
 
     // Register our custom receive handler
-    enamel_register_custom_inbox_received(in_received_handler);
+    enamel_app_message_open(0, 0, in_received_handler);
     
     ...
   }
@@ -114,6 +117,29 @@ Call `python enamel.py --help` for help
   enamel_get_Mysetting(); // where 'Mysetting' is an appKey in your configuration file
   ```
 
+6. (Advanced usage) You can manually manage your appmessage and call `enamel_inbox_received_handle` to notify enamel when settings are received :
+  
+  ``` c
+  static void in_received_handler(DictionaryIterator *iter, void *context) {
+    // Do some stuff with the dictionary
+    
+    // Call enamel to parse the dictionary if it contains settings
+    enamel_inbox_received_handle(iter, context);
+  }
+  
+  ...
+  
+  static void init(void) {
+    // Initialize Enamel to register App Message handlers and restores settings
+    enamel_init();
+
+    // handle appmessages manually
+    app_message_register_inbox_received(in_received_handler);
+    app_message_open(500, 500);
+    
+    ...
+  }
+  ```
 ---
 
 # Enamel API
@@ -122,9 +148,9 @@ Call `python enamel.py --help` for help
 
 | Method | Description |
 |--------|---------|
-| `void enamel_init(const uint32_t size_inbound, const uint32_t size_outbound)` | Initialize Enamel. <br>If `size_inbound` is `0`, Enamel will calculate the inbound size automatically for you |
+| `void enamel_init()` | Initialize Enamel and read settings from persistant storage |
+| `void enamel_app_message_open(const uint32_t size_inbound, const uint32_t size_outbound, AppMessageInboxReceived received_callback)` | Let Enamel manages the appmessages. <br>If `size_inbound` is `0`, Enamel will calculate the inbound size automatically for you. The `received_callback` will be called by Enamel when a message is received |
 | `void enamel_deinit()` | Deinitialize Enamel and save the settings in the persistant storage |
-| `void enamel_register_custom_inbox_received( AppMessageInboxReceived received_callback )` | Register a custom received callback called when a setting is received |
 | `<type> enamel_get_<appKeyId>()` | Return the value for the setting `appKeyId` |
 | `<type> enamel_get_<appKeyId>(uint16_t index_)` | *Only relevant for `checkboxgroup`*. <br>Return the value at given index for the setting `appKeyId` |
 | `uint16_t enamel_get_<appKeyId>_count()` | *Only relevant for `checkboxgroup`*. <br>Return the number of values for the setting `appKeyId` |
