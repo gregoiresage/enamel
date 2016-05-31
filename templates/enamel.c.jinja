@@ -334,37 +334,40 @@ void {{ filename }}_app_message_open(const uint32_t size_inbound, const uint32_t
 	app_message_register_inbox_received(in_received_handler);
 
 	if(size_inbound == 0) {
-		app_message_open( 1
-		{% for item in config %}
-		{% if item['type'] == 'section' %}
-{% if 'capabilities' in item %}
-#if {{ item['capabilities']|getdefines }}
-{% endif %}
-		{% for item in item['items'] %}
-{% if 'capabilities' in item %}
-#if {{ item['capabilities']|getdefines }}
-{% endif %}
-			{{ item_dict_size(item) }}
-{% if 'capabilities' in item %}
-#endif
-{% endif %}
-		{%- endfor %}
-{% if 'capabilities' in item %}
-#endif
-{% endif %}
-		{% else %}
-{% if 'capabilities' in item %}
-#if {{ item['capabilities']|getdefines }}
-{% endif %}
-			{{ item_dict_size(item) }}
-{% if 'capabilities' in item %}
-#endif
-{% endif %}
-		{%- endif %}
-		{% endfor %}
-		, size_outbound);
+		app_message_open({{ filename }}_get_inbound_size(), size_outbound);
 	}
 	else {
 		app_message_open(size_inbound, size_outbound);
 	}
+}
+
+uint16_t {{ filename }}_get_inbound_size() {
+	return 1
+		{% for item in config %}
+		{% if item['type'] == 'section' %}
+{%- if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif -%}
+		{% for item in item['items'] %}
+{%- if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif -%}
+			{{ item_dict_size(item) }}
+{%- if 'capabilities' in item %}
+#endif
+{% endif -%}
+		{%- endfor %}
+{%- if 'capabilities' in item %}
+#endif
+{% endif -%}
+		{% else %}
+{%- if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif -%}
+			{{ item_dict_size(item) }}
+{%- if 'capabilities' in item %}
+#endif
+{% endif -%}
+		{%- endif %}
+		{% endfor %};
 }
