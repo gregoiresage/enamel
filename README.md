@@ -154,6 +154,7 @@ Call `python enamel.py --help` for help
 | `<type> enamel_get_<appKeyId>()` | Return the value for the setting `appKeyId` |
 | `<type> enamel_get_<appKeyId>(uint16_t index_)` | *Only relevant for `checkboxgroup`*. <br>Return the value at given index for the setting `appKeyId` |
 | `uint16_t enamel_get_<appKeyId>_count()` | *Only relevant for `checkboxgroup`*. <br>Return the number of values for the setting `appKeyId` |
+| `uint16_t enamel_get_inbox_size()` | Return the size of a message containing all the settings (usefull if the appmessage is setup manually) |
 
 ## Type mapping
 

@@ -9,6 +9,9 @@
 
 {% macro item_header(item) %}
 {% if 'appKey' in item %}
+{% if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif %}
 // -----------------------------------------------------
 // Getter for '{{ item|getid }}'
 {% if item['type'] == 'select' or item['type'] == 'radiogroup' %}
@@ -48,6 +51,9 @@ typedef enum {
 {% endif %}
 int32_t {{ filename }}_get_{{ item|getid|cvarname }}();
 {% endif %}
+{% if 'capabilities' in item %}
+#endif
+{% endif %}
 // -----------------------------------------------------
 
 {% endif %}
@@ -70,5 +76,7 @@ void {{ filename }}_app_message_open(const uint32_t size_inbound, const uint32_t
 void {{ filename }}_deinit();
 
 void {{ filename }}_inbox_received_handle(DictionaryIterator *iter, void *context); 
+
+uint16_t {{ filename }}_get_inbound_size();
 
 #endif
