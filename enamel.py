@@ -51,6 +51,34 @@ def defaulttobytearray(item):
         res += '}'
     return res
 
+def getdefines(capabilities):
+    """Generate the #define for the given capabilities"""
+    if len(capabilities) == 0 :
+        return "1"
+    cap2defines = {
+        "PLATFORM_APLITE"       : "defined(PBL_PLATFORM_APLITE)",
+        "PLATFORM_BASALT"       : "defined(PBL_PLATFORM_BASALT)",
+        "PLATFORM_CHALK"        : "defined(PBL_PLATFORM_CHALK)",
+        "PLATFORM_DIORITE"      : "defined(PBL_PLATFORM_DIORITE)",
+        "PLATFORM_EMERY"        : "defined(PBL_PLATFORM_EMERY)",
+        "BW"                    : "defined(PBL_BW)",
+        "COLOR"                 : "defined(PBL_COLOR)",
+        "MICROPHONE"            : "defined(PBL_MICROPHONE)",
+        "SMARTSTRAP"            : "defined(PBL_SMARTSTRAP)",
+        "SMARTSTRAP_POWER"      : "defined(PBL_SMARTSTRAP_POWER)",
+        "HEALTH"                : "defined(PBL_HEALTH)",
+        "RECT"                  : "defined(PBL_RECT)",
+        "ROUND"                 : "defined(PBL_ROUND)",
+        "DISPLAY_144x168"       : "(defined(PBL_RECT) && !defined(PBL_PLATFORM_EMERY))",
+        "DISPLAY_180x180_ROUND" : "(defined(PBL_ROUND) && defined(PBL_PLATFORM_CHALK))",
+        "DISPLAY_200x228"       : "(defined(PBL_RECT) && defined(PBL_PLATFORM_EMERY))",
+    }
+    allcap2defines = {}
+    for key, value in cap2defines.iteritems():
+        allcap2defines[key]         = value
+        allcap2defines['NOT_'+key]  = '!' + value
+    return ' && '.join(allcap2defines[cap] for cap in capabilities) 
+
 def removeComments(string):
     """From http://stackoverflow.com/questions/2319019/using-regex-to-remove-comments-from-source-files"""
     string = re.sub(re.compile("/\*.*?\*/",re.DOTALL ) ,"" ,string) # remove all occurance streamed comments (/*COMMENT */) from string
@@ -71,6 +99,7 @@ def generate(appinfo='appinfo.json', configFile='src/js/config.json', outputDir=
     env.filters['getid']    = getid
     env.filters['maxdictsize']  = maxdictsize
     env.filters['defaulttobytearray'] = defaulttobytearray
+    env.filters['getdefines'] = getdefines
 
     # load appinfo file
     appinfo_content=open(appinfo)

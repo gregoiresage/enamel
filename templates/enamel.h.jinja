@@ -9,6 +9,9 @@
 
 {% macro item_header(item) %}
 {% if 'appKey' in item %}
+{% if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif %}
 // -----------------------------------------------------
 // Getter for '{{ item|getid }}'
 {% if item['type'] == 'select' or item['type'] == 'radiogroup' %}
@@ -47,6 +50,9 @@ typedef enum {
 #define {{ item|getid|cvarname|upper }}_PRECISION 1
 {% endif %}
 int32_t {{ filename }}_get_{{ item|getid|cvarname }}();
+{% endif %}
+{% if 'capabilities' in item %}
+#endif
 {% endif %}
 // -----------------------------------------------------
 
