@@ -8,7 +8,7 @@
 #include <pebble.h>
 
 {% macro item_header(item) %}
-{% if 'appKey' in item %}
+{% if 'appKey' in item and 'enamel-ignore' not in item %}
 {% if 'capabilities' in item %}
 #if {{ item['capabilities']|getdefines }}
 {% endif %}
