@@ -12,7 +12,7 @@
 static AppMessageInboxReceived custom_received_callback; 
 
 {% macro item_accessors_code(item) %}
-{% if 'appKey' in item %}
+{% if 'appKey' in item and 'enamel-ignore' not in item %}
 {% if 'capabilities' in item %}
 #if {{ item['capabilities']|getdefines }}
 {% endif %}
@@ -153,7 +153,7 @@ static void set_{{ item|getid|cvarname }}(uint8_t* data_, uint16_t length_){
 {% endfor %}
 
 {% macro item_in_received_handler(item) %}
-{% if 'appKey' in item %}
+{% if 'appKey' in item and 'enamel-ignore' not in item %}
 {% if 'capabilities' in item %}
 #if {{ item['capabilities']|getdefines }}
 {% endif %}
@@ -182,7 +182,7 @@ static void set_{{ item|getid|cvarname }}(uint8_t* data_, uint16_t length_){
 {% endmacro -%}
 
 {% macro item_init(item) %}
-{% if 'appKey' in item %}
+{% if 'appKey' in item and 'enamel-ignore' not in item %}
 {% if 'capabilities' in item %}
 #if {{ item['capabilities']|getdefines }}
 {% endif %}
@@ -245,7 +245,7 @@ static void set_{{ item|getid|cvarname }}(uint8_t* data_, uint16_t length_){
 {% endmacro -%}
 
 {% macro item_dict_size(item) %}
-{% if 'appKey' in item %}
+{% if 'appKey' in item and 'enamel-ignore' not in item %}
 {% if item['type'] == 'input' %}
 + 7 + {{ filename|upper }}_MAX_STRING_LENGTH
 {% elif item['type'] == 'select' or item['type'] == 'radiogroup' or item['type'] == 'checkboxgroup' %}
@@ -269,7 +269,7 @@ void {{ filename }}_init(){
 }
 
 {% macro item_deinit(item) %}
-{% if 'appKey' in item %}
+{% if 'appKey' in item and 'enamel-ignore' not in item %}
 {% if 'capabilities' in item %}
 #if {{ item['capabilities']|getdefines }}
 {% endif %}
