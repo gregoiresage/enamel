@@ -1,0 +1,34 @@
+{
+  "name": "enamel",
+  "author": "Grégoire Sage",
+  "version": "0.0.1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gregoiresage/enamel"
+  },
+  "files": [
+    "dist.zip",
+    "__init__.py",
+    "enamel.py",
+    "templates"
+  ],
+  "keywords": [
+    "pebble-package"
+  ],
+  "dependencies": {
+    "pebble-events": "^1.0.0"
+  },
+  "pebble": {
+    "projectType": "package",
+    "sdkVersion": "3",
+    "targetPlatforms": [
+      "aplite",
+      "basalt",
+      "chalk"
+    ],
+    "resources": {
+      "media": []
+    }
+  }
+}
