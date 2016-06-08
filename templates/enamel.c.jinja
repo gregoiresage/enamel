@@ -245,12 +245,14 @@ static void set_{{ item|getid|cvarname }}(uint8_t* data_, uint16_t length_){
 {% endmacro -%}
 
 {% macro item_dict_size(item) %}
+{% if 'appKey' in item %}
 {% if item['type'] == 'input' %}
 + 7 + {{ filename|upper }}_MAX_STRING_LENGTH
 {% elif item['type'] == 'select' or item['type'] == 'radiogroup' or item['type'] == 'checkboxgroup' %}
 + 7 + {{ item|maxdictsize }}
 {% elif item['type'] == 'color' or item['type'] == 'toggle' or item['type'] == 'slider' %}
 + 7 + 4
+{% endif %}
 {% endif %}
 {% endmacro -%}
 
