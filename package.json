@@ -1,7 +1,7 @@
 {
   "name": "enamel",
   "author": "Grégoire Sage",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -11,7 +11,8 @@
     "dist.zip",
     "__init__.py",
     "enamel.py",
-    "templates"
+    "templates",
+    "requirements.txt"
   ],
   "keywords": [
     "pebble-package"
