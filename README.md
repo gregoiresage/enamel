@@ -10,18 +10,14 @@ You can focus on your watchapp/face, Enamel will do the rest !
 
 ---
 
-# Demo
-
-You can find a basic demo project using Enamel [here](https://github.com/gregoiresage/demo-enamel)
-
----
-
-# Getting Started (pebble wscript)
+# Getting Started (SDK 3.13+)
 1. You project must contain a valid configuration file in `src/js/config.json` (see https://github.com/pebble/clay)
-2. Extract [Enamel](https://github.com/gregoiresage/enamel/releases/latest) at the root of your Pebble project or create a git submodule
+2. Install enamel with `pebble package install enamel`
 3. Copy and paste the following line into the top of your `wscript` : 
   
   ``` python
+  import sys
+  sys.path.append('node_modules')
   from enamel.enamel import enamel
   ```
 4. Change the `build` of your wscript from 
@@ -40,21 +36,26 @@ You can find a basic demo project using Enamel [here](https://github.com/gregoir
 >The first time you launch a build, you will get an error message because Jinja2 module is missing.<br>
 >Just follow the instructions to fix your environment.
 
-# Getting Started (python)
-If you can't modify the wscript (Cloudpebble development) you can call directly the python script.
+# Getting Started (CloudPebble)
+In the CloudPebble environment, you can't modify the wscript so you need to call directly the python script.
 
-Enamel needs the Jinja2 module for the code generation.
-Install the dependency with 
-```
-pip install Jinja2
-```
+1. Under Dependencies in the project navigation, enter `enamel` as the Package Name and ^1.0.0 for the Version. You may use any specific version you like, however using ^1.0.0 will ensure you receive all minor version updates.
 
-The following command will generate 2 files (enamel.c and enamel.h), you just need to copy them in your project
-```
-python enamel.py --appinfo /path/to/your/appinfo.json --config /path/to/your/config.json 
-```
+2. Copy the content of your Clay's `config.js` file into a local file (`local_config.js`)
 
-Call `python enamel.py --help` for help
+3. Install the python dependencies for the code generation
+
+  ```
+  pip install -r requirements.txt
+  ```
+
+4. Call the script to generate the enamel files
+
+  ```
+  python enamel.py --config /path/to/local_config.js 
+  ```
+
+5. Copy the 2 generated files in your CloudPebble project
 
 ---
 
@@ -64,16 +65,17 @@ Call `python enamel.py --help` for help
   
   ``` c
   #include "enamel.h"
+  #include <pebble-events/pebble-events.h>
   ```
-3. Initialize enamel in your `init` function : 
+3. Initialize enamel in your `init` function and call `events_app_message_open()` after any other libraries you need to init.
   
   ``` c
   static void init(void) {
     // Initialize Enamel to register App Message handlers and restores settings
     enamel_init();
     
-    // Let enamel init the appmessage framework
-    enamel_app_message_open(0, 0, NULL); 
+    // call pebble-events app_message_open function
+    events_app_message_open(); 
     
     ...
   }
@@ -88,10 +90,10 @@ Call `python enamel.py --help` for help
     enamel_deinit();
   }
   ```
-5. (Optional) Register a custom `in_received_handler` in your `init`. <br>This handler will be automatically called by enamel when a setting is received.
+5. (Optional) Register a callback after `enamel_init` that will be automatically called when the settings are received.
 
   ``` c
-  static void in_received_handler(DictionaryIterator *iter, void *context) {
+  static void enamel_register_settings_received_cb(){
     APP_LOG(0, "Settings received %d", enamel_get_myinteger());
     window_set_background_color(window, enamel_get_background());
     // do what you want here 
@@ -105,8 +107,11 @@ Call `python enamel.py --help` for help
     // Initialize Enamel to register App Message handlers and restores settings
     enamel_init();
 
-    // Register our custom receive handler
-    enamel_app_message_open(0, 0, in_received_handler);
+    // Register our callback
+    enamel_register_settings_received(enamel_register_settings_received_cb);
+    
+    // call pebble-events app_message_open function
+    events_app_message_open(); 
     
     ...
   }
@@ -114,31 +119,7 @@ Call `python enamel.py --help` for help
 6. Get the value of your setting with :
   
   ``` c
-  enamel_get_Mysetting(); // where 'Mysetting' is an appKey in your configuration file
-  ```
-
-6. (Advanced usage) You can manually manage your appmessage and call `enamel_inbox_received_handle` to notify enamel when settings are received :
-  
-  ``` c
-  static void in_received_handler(DictionaryIterator *iter, void *context) {
-    // Do some stuff with the dictionary
-    
-    // Call enamel to parse the dictionary if it contains settings
-    enamel_inbox_received_handle(iter, context);
-  }
-  
-  ...
-  
-  static void init(void) {
-    // Initialize Enamel to register App Message handlers and restores settings
-    enamel_init();
-
-    // handle appmessages manually
-    app_message_register_inbox_received(in_received_handler);
-    app_message_open(500, 500);
-    
-    ...
-  }
+  enamel_get_Mysetting(); // where 'Mysetting' is a messageKey in your configuration file
   ```
 ---
 
@@ -149,12 +130,9 @@ Call `python enamel.py --help` for help
 | Method | Description |
 |--------|---------|
 | `void enamel_init()` | Initialize Enamel and read settings from persistant storage |
-| `void enamel_app_message_open(const uint32_t size_inbound, const uint32_t size_outbound, AppMessageInboxReceived received_callback)` | Let Enamel manages the appmessages. <br>If `size_inbound` is `0`, Enamel will calculate the inbound size automatically for you. The `received_callback` will be called by Enamel when a message is received |
 | `void enamel_deinit()` | Deinitialize Enamel and save the settings in the persistant storage |
-| `<type> enamel_get_<appKeyId>()` | Return the value for the setting `appKeyId` |
-| `<type> enamel_get_<appKeyId>(uint16_t index_)` | *Only relevant for `checkboxgroup`*. <br>Return the value at given index for the setting `appKeyId` |
-| `uint16_t enamel_get_<appKeyId>_count()` | *Only relevant for `checkboxgroup`*. <br>Return the number of values for the setting `appKeyId` |
-| `uint16_t enamel_get_inbox_size()` | Return the size of a message containing all the settings (usefull if the appmessage is setup manually) |
+| `<type> enamel_get_<messageKeyId>()` | Return the value for the setting `messageKeyId` |
+| `bool enamel_get_<messageKeyId>(uint16_t index_)` | *Only relevant for `checkboxgroup`*. <br>Return the value at given index for the setting `messageKeyId` |
 
 ## Type mapping
 
@@ -164,10 +142,10 @@ Call `python enamel.py --help` for help
 | `toggle` | `bool` |
 | `color` | `GColor` |
 | `select/radiogroup` | `char*` or `enum` |
-| `checkboxgroup` | `char*` or `enum` |
+| `checkboxgroup` | `bool` |
 | `slider` | `int32_t` |
 
-### Special case for `select`, `radiogroup` and `checkboxgroup`
+### Special case for `select`, `radiogroup`
 
 If the value of the options are `string` in the `config.json`, Enamel will generate a `char*` getter
 
@@ -177,7 +155,7 @@ For the given setting :
 ``` json
 {
   "type": "radiogroup",
-  "appKey": "favorite_food",
+  "messageKey": "favorite_food",
   "label": "Favorite Food",
   "defaultValue": "1",
   "options": [

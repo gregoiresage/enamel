@@ -1,8 +1,12 @@
 # Ignore build generated files
-build
+build/
+dist/
+dist.zip
 
 # Ignore waf lock file
 .lock-waf*
 
-generated
+# Ignore installed node modules
+node_modules/
+
 *.pyc
