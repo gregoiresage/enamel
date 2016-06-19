@@ -11,7 +11,8 @@
     "dist.zip",
     "__init__.py",
     "enamel.py",
-    "templates"
+    "templates",
+    "requirements.txt"
   ],
   "keywords": [
     "pebble-package"
