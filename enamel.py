@@ -32,9 +32,6 @@ def maxdictsize(item):
     if item['type'] == 'select' or item['type'] == 'radiogroup' :
         for option in item['options'] :
             size = max(size, len(str(option['value'])) + 1)
-    elif item['type'] == 'checkboxgroup' :
-        for option in item['options'] :
-            size += len(str(option['value'])) + 1
     return size
 
 def getdefines(capabilities):
