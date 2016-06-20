@@ -1,7 +1,7 @@
 {
   "name": "enamel",
   "author": "Grégoire Sage",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -26,7 +26,8 @@
     "targetPlatforms": [
       "aplite",
       "basalt",
-      "chalk"
+      "chalk",
+      "diorite"
     ],
     "resources": {
       "media": []
