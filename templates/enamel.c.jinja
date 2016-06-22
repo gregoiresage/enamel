@@ -36,17 +36,17 @@ static void prv_set_{{ item|getid|cvarname }}(bool value){
 {% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 {% if item['options'][0]['value'] is string %}
 static uint16_t s_{{ item|getid|cvarname }};
-static const char* {{ item|getid|cvarname }}_values[] = {
+static const char* s_{{ item|getid|cvarname }}_values[] = {
 {%- for option in item['options'] -%}
 	"{{ option['value'] }}",
 {%- endfor -%}
 };
 const char* enamel_get_{{ item|getid|cvarname }}(){
-	return {{ item|getid|cvarname }}_values[_{{ item|getid|cvarname }}];
+	return s_{{ item|getid|cvarname }}_values[s_{{ item|getid|cvarname }}];
 }
 static void prv_set_{{ item|getid|cvarname }}(char* value){
 	for(uint16_t i=0; i<{{ item['options']|length }}; i++){
-		if(strcmp(value, {{ item|getid|cvarname }}_values[i]) == 0){
+		if(strcmp(value, s_{{ item|getid|cvarname }}_values[i]) == 0){
 			s_{{ item|getid|cvarname }} = i;
 			return;
 		}
