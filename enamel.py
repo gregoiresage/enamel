@@ -12,7 +12,7 @@ except ImportError as e:
     if 'sdk-core' in sys.prefix :
         message = 'Jinja2 module is missing, you probably forgot to patch your current sdk\n'
         message += 'Fix the problem by executing the following command and relaunch your build:\n\n'
-        message += 'pip install --target="%s/lib/python2.7/site-packages/" -r "%s/requirements.txt"\n' % (sys.prefix, os.path.dirname(os.path.abspath(__file__)))
+        message += '"%s/bin/python" -m pip install -r "%s/requirements.txt"\n' % (sys.prefix, os.path.dirname(os.path.abspath(__file__)))
         print message
         sys.exit(-1)
     else :
@@ -32,9 +32,6 @@ def maxdictsize(item):
     if item['type'] == 'select' or item['type'] == 'radiogroup' :
         for option in item['options'] :
             size = max(size, len(str(option['value'])) + 1)
-    elif item['type'] == 'checkboxgroup' :
-        for option in item['options'] :
-            size += len(str(option['value'])) + 1
     return size
 
 def getdefines(capabilities):
