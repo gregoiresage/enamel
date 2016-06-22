@@ -207,7 +207,7 @@ static void prv_set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Val
 		prv_set_{{ item|getid|cvarname }}({{item['defaultValue']|lower}});
 		{% elif item['type'] == 'checkboxgroup' %}
 		{% for val in item['defaultValue'] %}
-		prv_set_favorite_food({{ loop.index0 }}, {{ val|lower }});
+		prv_set_{{ item|getid|cvarname }}({{ loop.index0 }}, {{ val|lower }});
 		{% endfor %}
 		{% endif %}
 	}
