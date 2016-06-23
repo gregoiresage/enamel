@@ -109,9 +109,15 @@ static void prv_set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Val
 
 {% for item in config -%}
 {% if item['type'] == 'section' %}
+{% if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif %}
 {% for item in item['items'] %}
 {{ item_accessors_code(item) }}
 {%- endfor %}
+{% if 'capabilities' in item %}
+#endif
+{% endif %}
 {% else %}
 {{ item_accessors_code(item) }}
 {%- endif %}
@@ -268,9 +274,15 @@ static void inbox_received_handle(DictionaryIterator *iter, void *context) {
 	bool changed = false;
 {% for item in config %}
 {% if item['type'] == 'section' %}
+{% if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif %}
 {% for item in item['items'] %}
 {{ item_in_received_handler(item) }}
 {%- endfor %}
+{%- if 'capabilities' in item %}
+#endif
+{% endif -%}
 {% else %}
 {{ item_in_received_handler(item) }}
 {%- endif %}
@@ -342,9 +354,15 @@ void enamel_init(){
 	uint32_t pkey = 0;
 {% for item in config %}
 {% if item['type'] == 'section' %}
+{% if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif %}
 {% for item in item['items'] %}
 {{ item_init(item) }}
 {%- endfor %}
+{%- if 'capabilities' in item %}
+#endif
+{% endif -%}
 {% else %}
 {{ item_init(item) }}
 {%- endif %}
@@ -413,9 +431,15 @@ void enamel_deinit(){
 	
 {% for item in config %}
 {% if item['type'] == 'section' %}
+{% if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif %}
 {% for item in item['items'] %}
 {{ item_deinit(item) }}
 {%- endfor %}
+{% if 'capabilities' in item %}
+#endif
+{% endif %}
 {% else %}
 {{ item_deinit(item) }}
 {%- endif %}
@@ -427,9 +451,15 @@ void enamel_deinit(){
 
 {% for item in config %}
 {% if item['type'] == 'section' %}
+{% if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif %}
 {% for item in item['items'] %}
 {{ item_free(item) }}
 {%- endfor %}
+{% if 'capabilities' in item %}
+#endif
+{% endif %}
 {% else %}
 {{ item_free(item) }}
 {%- endif %}

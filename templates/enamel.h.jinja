@@ -56,9 +56,15 @@ int32_t enamel_get_{{ item|getid|cvarname }}();
 
 {% for item in config %}
 {% if item['type'] == 'section' %}
+{% if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif %}
 {% for item in item['items'] %}
 {{ item_header(item) }}
 {%- endfor %}
+{% if 'capabilities' in item %}
+#endif
+{% endif %}
 {% else %}
 {{ item_header(item) }}
 {%- endif %}
