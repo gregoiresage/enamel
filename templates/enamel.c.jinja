@@ -109,9 +109,15 @@ static void prv_set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Val
 
 {% for item in config -%}
 {% if item['type'] == 'section' %}
+{% if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif %}
 {% for item in item['items'] %}
 {{ item_accessors_code(item) }}
 {%- endfor %}
+{% if 'capabilities' in item %}
+#endif
+{% endif %}
 {% else %}
 {{ item_accessors_code(item) }}
 {%- endif %}
