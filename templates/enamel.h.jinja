@@ -15,11 +15,11 @@
 // -----------------------------------------------------
 // Getter for '{{ item|getid }}'
 {% if item['type'] == 'select' or item['type'] == 'radiogroup' %}
-{% if item['options'][0]['value'] is string %}
+{% if item|hasStringOptions %}
 const char* enamel_get_{{ item|getid|cvarname }}();
 {% else %}
 typedef enum {
-{% for option in item['options']: %}
+{% for option in item|getOptionArray %}
 	{{ item|getid|cvarname|upper }}_{{ option['label']|cvarname|upper }} = {{ option['value'] }},
 {% endfor %}
 } {{ item|getid|cvarname|upper }}Value;

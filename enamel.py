@@ -26,14 +26,6 @@ def getid(item):
     """Return an identifier for the given config item, takes 'id' if it exists or 'messageKey'"""
     return item['id'] if 'id' in item else item['messageKey']
 
-def maxdictsize(item):
-    """Return the maximum size of the item in the dictionary"""
-    size = 0
-    if item['type'] == 'select' or item['type'] == 'radiogroup' :
-        for option in item['options'] :
-            size = max(size, len(str(option['value'])) + 1)
-    return size
-
 def getdefines(capabilities):
     """Generate the #define for the given capabilities"""
     if len(capabilities) == 0 :
@@ -83,6 +75,35 @@ def hashkey(item):
         messageKey = messageKey + '[' + str(len(item['options'])) + ']'
     return hash(messageKey) & 0xFFFFFFFF
 
+def getOptionArray(item):
+    options = []
+    for option in item['options'] :
+        if type(option['value']) == list:
+            for suboption in option['value'] :
+                options += [suboption]
+        else :
+            options += [option]
+    return options
+
+def hasStringOptions(item):
+    for option in item['options'] :
+        if type(option['value']) == list:
+            for suboption in option['value'] :
+                if type(suboption['value']) == unicode or type(suboption['value']) == str :
+                    return True
+        elif type(option['value']) == unicode or type(option['value']) == str :
+            return True
+    return False
+
+def maxdictsize(item):
+    """Return the maximum size of the item in the dictionary"""
+    size = 0
+    if item['type'] == 'select' or item['type'] == 'radiogroup' :
+        options = getOptionArray(item)
+        for option in options :
+            size = max(size, len(str(option['value'])) + 1)
+    return size
+
 def removeComments(string):
     """From http://stackoverflow.com/questions/2319019/using-regex-to-remove-comments-from-source-files"""
     string = re.sub(re.compile("/\*.*?\*/",re.DOTALL ) ,"" ,string) # remove all occurance streamed comments (/*COMMENT */) from string
@@ -106,6 +127,8 @@ def generate(configFile='src/js/config.json', outputDir='src/generated'):
     env.filters['getmessagekey'] = getmessagekey
     env.filters['hashkey'] = hashkey
     env.filters['settingscount'] = settingscount
+    env.filters['getOptionArray'] = getOptionArray
+    env.filters['hasStringOptions'] = hasStringOptions
 
     # load config file
     config_content=open(configFile)

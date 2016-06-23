@@ -34,18 +34,18 @@ static void prv_set_{{ item|getid|cvarname }}(bool value){
 	s_{{ item|getid|cvarname }} = value;
 }
 {% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
-{% if item['options'][0]['value'] is string %}
+{% if item|hasStringOptions %}
 static uint16_t s_{{ item|getid|cvarname }};
-static const char* s_{{ item|getid|cvarname }}_values[] = {
-{%- for option in item['options'] -%}
-	"{{ option['value'] }}",
+static const char* s_{{ item|getid|cvarname }}_values[{{ item|getOptionArray|length }}] = {
+{%- for option in item|getOptionArray -%}
+	"{{ option['value'] }}",
 {%- endfor -%}
 };
 const char* enamel_get_{{ item|getid|cvarname }}(){
 	return s_{{ item|getid|cvarname }}_values[s_{{ item|getid|cvarname }}];
 }
 static void prv_set_{{ item|getid|cvarname }}(char* value){
-	for(uint16_t i=0; i<{{ item['options']|length }}; i++){
+	for(uint16_t i=0; i<{{ item|getOptionArray|length }}; i++){
 		if(strcmp(value, s_{{ item|getid|cvarname }}_values[i]) == 0){
 			s_{{ item|getid|cvarname }} = i;
 			return;
@@ -131,16 +131,14 @@ static void prv_set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Val
 	{% if item['type'] == 'checkboxgroup' %}
 	{% for option in item['options'] %}
 	tuple = dict_find(iter,  {{ item|getmessagekey }} + {{ loop.index0 }});
-	changed = changed || (tuple != NULL);
 	tuple ? prv_set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}_{{ option|cvarname|upper }}, tuple->value->int32 == 1) : false;
 	{% endfor %}
 	{% else %}
 	tuple = dict_find(iter, {{ item|getmessagekey }});
-	changed = changed || tuple;
 	{% if item['type'] == 'input' %}
 	tuple ? prv_set_{{ item|getid|cvarname }}(tuple->value->cstring) : false;
 	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
-	{% if item['options'][0]['value'] is string %}
+	{% if item|hasStringOptions %}
 	tuple ? prv_set_{{ item|getid|cvarname }}(tuple->value->cstring) : false;
 	{% else %}
 	tuple ? prv_set_{{ item|getid|cvarname }}(atoi(tuple->value->cstring)) : false;
@@ -168,11 +166,11 @@ static void prv_set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Val
 	if (pkey && persist_exists(pkey)) {
 		{% if item['type'] == 'input' %}
 		char tmp[ENAMEL_MAX_STRING_LENGTH];
-		memset(tmp, 0, ENAMEL_MAX_STRING_LENGTH);
 		persist_read_string(pkey, tmp, ENAMEL_MAX_STRING_LENGTH);
+		tmp[ENAMEL_MAX_STRING_LENGTH-1]=0;
 		prv_set_{{ item|getid|cvarname }}(tmp);
 		{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
-		{% if item['options'][0]['value'] is string %}
+		{% if item|hasStringOptions %}
 		s_{{ item|getid|cvarname }} = (uint16_t)persist_read_int(pkey);
 		{% else %}
 		prv_set_{{ item|getid|cvarname }}(persist_read_int(pkey));
@@ -192,7 +190,7 @@ static void prv_set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Val
 		{% if item['type'] == 'input' %}
 		prv_set_{{ item|getid|cvarname }}("{{item['defaultValue']}}");
 		{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
-		{% if item['options'][0]['value'] is string %}
+		{% if item|hasStringOptions %}
 		prv_set_{{ item|getid|cvarname }}("{{item['defaultValue']}}");
 		{% else %}
 		prv_set_{{ item|getid|cvarname }}({{item['defaultValue']}});
@@ -271,7 +269,6 @@ static uint16_t prv_get_inbound_size() {
 
 static void inbox_received_handle(DictionaryIterator *iter, void *context) {
 	Tuple *tuple = NULL;
-	bool changed = false;
 {% for item in config %}
 {% if item['type'] == 'section' %}
 {% if 'capabilities' in item %}
@@ -287,9 +284,11 @@ static void inbox_received_handle(DictionaryIterator *iter, void *context) {
 {{ item_in_received_handler(item) }}
 {%- endif %}
 {% endfor %}
-	s_config_changed |= changed;
-	if(changed && s_settings_received_callback){
-		s_settings_received_callback();
+	if(tuple) {
+		s_config_changed = true;
+		if(s_settings_received_callback){
+			s_settings_received_callback();
+		}
 	}
 }
 
@@ -383,26 +382,22 @@ void enamel_init(){
 {% if 'capabilities' in item %}
 #if {{ item['capabilities']|getdefines }}
 {% endif %}
-	keys[num_keys++] = {{ item|hashkey }};
-	{% if item['type'] == 'input' %}
-	persist_write_string(pkey++, s_{{ item|getid|cvarname }});
-	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
-	{% if item['options'][0]['value'] is string %}
-	persist_write_int(pkey++, s_{{ item|getid|cvarname }});
-	{% else %}
-	persist_write_int(pkey++, s_{{ item|getid|cvarname }});
-	{% endif %}
-	{% elif item['type'] == 'toggle' %}
-	persist_write_bool(pkey++, s_{{ item|getid|cvarname }});
-	{% elif item['type'] == 'color' %}
-	persist_write_int(pkey++, s_{{ item|getid|cvarname }}.argb);
-	{% elif item['type'] == 'slider' %}
-	persist_write_int(pkey++, s_{{ item|getid|cvarname }});
-	{% elif item['type'] == 'checkboxgroup' %}
-	persist_write_data(pkey++, s_{{ item|getid|cvarname }}, {{ item['options']|length }});
-	{% else %}
-	num_keys--;
-	{% endif %}
+		keys[num_keys++] = {{ item|hashkey }};
+		{% if item['type'] == 'input' %}
+		persist_write_string(pkey++, s_{{ item|getid|cvarname }});
+		{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
+		persist_write_int(pkey++, s_{{ item|getid|cvarname }});
+		{% elif item['type'] == 'toggle' %}
+		persist_write_bool(pkey++, s_{{ item|getid|cvarname }});
+		{% elif item['type'] == 'color' %}
+		persist_write_int(pkey++, s_{{ item|getid|cvarname }}.argb);
+		{% elif item['type'] == 'slider' %}
+		persist_write_int(pkey++, s_{{ item|getid|cvarname }});
+		{% elif item['type'] == 'checkboxgroup' %}
+		persist_write_data(pkey++, s_{{ item|getid|cvarname }}, {{ item['options']|length }});
+		{% else %}
+		num_keys--;
+		{% endif %}
 {% if 'capabilities' in item %}
 #endif
 {% endif %}
@@ -425,9 +420,9 @@ void enamel_init(){
 
 void enamel_deinit(){
 	if(s_config_changed){
-	uint32_t pkey = ENAMEL_VALUE_PKEY;
-	uint16_t num_keys = 0;
-	uint32_t keys[{{ config|settingscount }}];
+		uint32_t pkey = ENAMEL_VALUE_PKEY;
+		uint16_t num_keys = 0;
+		uint32_t keys[{{ config|settingscount }}];
 	
 {% for item in config %}
 {% if item['type'] == 'section' %}
@@ -445,8 +440,8 @@ void enamel_deinit(){
 {%- endif %}
 {% endfor %}
 
-	persist_write_int(ENAMEL_PKEY, num_keys);
-	prv_save_generic_data(ENAMEL_PKEY + 1, keys, num_keys * sizeof(uint32_t));
+		persist_write_int(ENAMEL_PKEY, num_keys);
+		prv_save_generic_data(ENAMEL_PKEY + 1, keys, num_keys * sizeof(uint32_t));
 	}
 
 {% for item in config %}
