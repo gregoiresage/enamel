@@ -18,6 +18,7 @@
     "pebble-package"
   ],
   "dependencies": {
+    "pebble-clay": "^1.0.1",
     "pebble-events": "^1.0.0"
   },
   "pebble": {
