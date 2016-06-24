@@ -30,6 +30,9 @@
       "chalk",
       "diorite"
     ],
+    "capabilities": [
+      "configurable"
+    ],
     "resources": {
       "media": []
     }
