@@ -1,7 +1,7 @@
 {
   "name": "enamel",
   "author": "Grégoire Sage",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -18,6 +18,7 @@
     "pebble-package"
   ],
   "dependencies": {
+    "pebble-clay": "^1.0.1",
     "pebble-events": "^1.0.0"
   },
   "pebble": {
@@ -28,6 +29,9 @@
       "basalt",
       "chalk",
       "diorite"
+    ],
+    "capabilities": [
+      "configurable"
     ],
     "resources": {
       "media": []
