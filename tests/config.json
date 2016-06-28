@@ -1,0 +1,146 @@
+[
+{ 
+  "type": "heading", 
+  "defaultValue": "Enamel Demo" 
+},
+{
+  "type": "section",
+  "items": [
+    { "type": "heading", "defaultValue": "Section 1" },
+    {
+      "type": "toggle",
+      "id": "enable_background",
+      "messageKey": "enable_background",
+      "label": "Enable Background",
+      "defaultValue" : true
+    },
+    {
+      "type": "color",
+      "id": "background",
+      "messageKey": "background",
+      "defaultValue": "FF0000",
+      "label": "Background Color",
+      "sunlight": true
+    },
+    {
+      "type": "select",
+      "id": "font_size",
+      "messageKey": "font_size",
+      "defaultValue": "1",
+      "label": "Text Size",
+      "options": [
+        { 
+          "label": "Small", 
+          "value": 0
+        },
+        { 
+          "label": "Normal",
+          "value": 1 
+        },
+        { 
+          "label": "Large",
+          "value": 2 
+        }
+      ]
+    },
+    {
+      "type": "checkboxgroup",
+      "messageKey": "favoritefood",
+      "label": "Favorite Food",
+      "defaultValue": [true, false, true],
+      "options": ["Sushi", "Pizza", "Burgers"]
+    },
+    {
+      "type": "radiogroup",
+      "messageKey": "favorite_drink",
+      "label": "Favorite Drink",
+      "defaultValue": "coca",
+      "options": [
+        { 
+          "label": "Water", 
+          "value": "water" 
+        },
+        { 
+          "label": "Coca", 
+          "value": "coca" 
+        },
+        { 
+          "label": "Wine", 
+          "value": "wine" 
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "messageKey": "flavor",
+      "defaultValue": "grape",
+      "label": "Favorite Flavor",
+      "options": [
+        { 
+          "label": "", 
+          "value": "" 
+        },
+        {
+          "label": "Fruits",
+          "value": [
+            { 
+              "label": "Berry",
+              "value": "berry" 
+            },
+            { 
+              "label": "Grape",
+              "value": "grape" 
+            },
+            { 
+              "label": "Banana",
+              "value": "banana" 
+            }
+          ]
+        }, 
+        {
+          "label": "Candy",
+          "value": [
+            { 
+              "label": "Chocolate",
+              "value": "chocolate" 
+            },
+            { 
+              "label": "Cream",
+              "value": "cream" 
+            },
+            { 
+              "label": "Lollipop",
+              "value": "lollipop" 
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "slider",
+      "messageKey": "slider",
+      "defaultValue": 15,
+      "label": "Slider",
+      "description": "This is the description for the slider",
+      "min": 0,
+      "max": 100,
+      "step": 0.25
+    }
+  ]
+},
+{
+  "type": "section",
+  "items": [
+    {
+      "type": "heading",
+      "defaultValue": "Another section"
+    },
+    {
+      "type": "input",
+      "messageKey": "email",
+      "label": "Email Address"
+    }
+  ]
+},
+{ "type": "submit", "defaultValue": "Done" }
+]

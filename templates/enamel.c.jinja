@@ -7,14 +7,18 @@
 #include "enamel.h"
 
 #ifndef ENAMEL_MAX_STRING_LENGTH
-#define ENAMEL_MAX_STRING_LENGTH 30
+#define ENAMEL_MAX_STRING_LENGTH 100
 #endif
 
-#define ENAMEL_PKEY 100000000
-#define ENAMEL_VALUE_PKEY ENAMEL_PKEY + 10
+#define ENAMEL_PKEY 3000000000
+#define ENAMEL_DICT_PKEY (ENAMEL_PKEY+1)
 
 static EventHandle s_event_handle;
 static EnamelSettingsReceivedCallback *s_settings_received_callback; 
+
+static DictionaryIterator s_dict;
+static uint8_t* s_dict_buffer = NULL;
+static uint32_t s_dict_size = 0;
 
 static bool s_config_changed;
 
@@ -26,77 +30,55 @@ static bool s_config_changed;
 // -----------------------------------------------------
 // Getter for '{{ item|getid }}'
 {% if item['type'] == 'toggle' %}
-static bool s_{{ item|getid|cvarname }};
 bool enamel_get_{{ item|getid|cvarname }}(){
-	return s_{{ item|getid|cvarname }};
-}
-static void prv_set_{{ item|getid|cvarname }}(bool value){
-	s_{{ item|getid|cvarname }} = value;
+	Tuple* tuple = dict_find(&s_dict, {{ item|hashkey }});
+	return tuple ? tuple->value->int32 == 1 : {{item['defaultValue']|lower}};
 }
 {% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
 {% if item|hasStringOptions %}
-static uint16_t s_{{ item|getid|cvarname }};
-static const char* s_{{ item|getid|cvarname }}_values[{{ item|getOptionArray|length }}] = {
-{%- for option in item|getOptionArray -%}
-	"{{ option['value'] }}",
-{%- endfor -%}
-};
 const char* enamel_get_{{ item|getid|cvarname }}(){
-	return s_{{ item|getid|cvarname }}_values[s_{{ item|getid|cvarname }}];
-}
-static void prv_set_{{ item|getid|cvarname }}(char* value){
-	for(uint16_t i=0; i<{{ item|getOptionArray|length }}; i++){
-		if(strcmp(value, s_{{ item|getid|cvarname }}_values[i]) == 0){
-			s_{{ item|getid|cvarname }} = i;
-			return;
-		}
-	}
-	s_{{ item|getid|cvarname }} = 0;
+	Tuple* tuple = dict_find(&s_dict, {{ item|hashkey }});
+	return tuple ? tuple->value->cstring : "{{item['defaultValue']}}";
 }
 {% else %}
-{{ item|getid|cvarname|upper }}Value s_{{ item|getid|cvarname }};
 {{ item|getid|cvarname|upper }}Value enamel_get_{{ item|getid|cvarname }}(){
-	return s_{{ item|getid|cvarname }};
-}
-static void prv_set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Value value){
-	s_{{ item|getid|cvarname }} = value;
+	Tuple* tuple = dict_find(&s_dict, {{ item|hashkey }});
+	return tuple ? atoi(tuple->value->cstring) : {{item['defaultValue']}};
 }
 {% endif %}
 {% elif item['type'] == 'input' %}
-static char* s_{{ item|getid|cvarname }} = NULL; 
 const char* enamel_get_{{ item|getid|cvarname }}(){
-	return s_{{ item|getid|cvarname }};
-}
-static void prv_set_{{ item|getid|cvarname }}(char* value){
-	if(s_{{ item|getid|cvarname }}) free( s_{{ item|getid|cvarname }});
-	uint32_t size = strlen(value);
-	s_{{ item|getid|cvarname }} = malloc(size + 1);
-	s_{{ item|getid|cvarname }}[size] = 0;
-	strncpy(s_{{ item|getid|cvarname }}, value, size);
+	Tuple* tuple = dict_find(&s_dict, {{ item|hashkey }});
+	return tuple ? tuple->value->cstring : "{{item['defaultValue']}}";
 }
 {% elif item['type'] == 'color' %}
-static GColor s_{{ item|getid|cvarname }};
 GColor enamel_get_{{ item|getid|cvarname }}(){
-	return s_{{ item|getid|cvarname }};
-}
-static void prv_set_{{ item|getid|cvarname }}(uint8_t value){
-	s_{{ item|getid|cvarname }}.argb = value;
+	Tuple* tuple = dict_find(&s_dict, {{ item|hashkey }});
+	{% if item['defaultValue'] is string %}
+	return tuple ? GColorFromHEX(tuple->value->int32) : GColorFromHEX(0x{{item['defaultValue']}});
+	{% else %}
+	return tuple ? GColorFromHEX(tuple->value->int32) : GColorFromHEX({{item['defaultValue']}});
+	{% endif %}
 }
 {% elif item['type'] == 'slider' %}
-static int32_t s_{{ item|getid|cvarname }};
 int32_t enamel_get_{{ item|getid|cvarname }}(){
-	return s_{{ item|getid|cvarname }};
-}
-static void prv_set_{{ item|getid|cvarname }}(int32_t value){
-	s_{{ item|getid|cvarname }} = value;
+	Tuple* tuple = dict_find(&s_dict, {{ item|hashkey }});
+	return tuple ? tuple->value->int32 : {{ (item['defaultValue'] * 10**((item['step'] - item['step']|round(0, 'floor'))|string|length - 2))|int }};
 }
 {% elif item['type'] == 'checkboxgroup' %}
-static bool s_{{ item|getid|cvarname }}[{{item['options']|length}}];
 bool enamel_get_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Value index_){
-	return s_{{ item|getid|cvarname }}[index_];
-}
-static void prv_set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Value index_, bool data_){
-	s_{{ item|getid|cvarname }}[index_] = data_;
+	Tuple* tuple = dict_find(&s_dict,  {{ item|hashkey }} + index_);
+	if(tuple){
+		return tuple->value->int32 == 1;
+	}
+	else {
+		switch(index_){
+			{% for option in item['options'] %}
+			case {{ loop.index0 }} : return {{ item['defaultValue'][loop.index0]|lower }}; break;
+			{% endfor %}
+			default : return false;
+		}
+	}
 }
 {% endif %}
 // -----------------------------------------------------
@@ -123,172 +105,115 @@ static void prv_set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Val
 {%- endif %}
 {% endfor %}
 
-{% macro item_in_received_handler(item) %}
-{% if 'messageKey' in item and 'enamel-ignore' not in item %}
-{% if 'capabilities' in item %}
-#if {{ item['capabilities']|getdefines }}
-{% endif %}
-	{% if item['type'] == 'checkboxgroup' %}
-	{% for option in item['options'] %}
-	tuple = dict_find(iter,  {{ item|getmessagekey }} + {{ loop.index0 }});
-	tuple ? prv_set_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}_{{ option|cvarname|upper }}, tuple->value->int32 == 1) : false;
-	{% endfor %}
-	{% else %}
-	tuple = dict_find(iter, {{ item|getmessagekey }});
-	{% if item['type'] == 'input' %}
-	tuple ? prv_set_{{ item|getid|cvarname }}(tuple->value->cstring) : false;
-	{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
-	{% if item|hasStringOptions %}
-	tuple ? prv_set_{{ item|getid|cvarname }}(tuple->value->cstring) : false;
-	{% else %}
-	tuple ? prv_set_{{ item|getid|cvarname }}(atoi(tuple->value->cstring)) : false;
-	{% endif %}
-	{% elif item['type'] == 'color' %}
-	tuple ? prv_set_{{ item|getid|cvarname }}(GColorFromHEX(tuple->value->int32).argb) : false;
-	{% elif item['type'] == 'toggle' %}
-	tuple ? prv_set_{{ item|getid|cvarname }}(tuple->value->int32) : false;
-	{% elif item['type'] == 'slider' %}
-	tuple ? prv_set_{{ item|getid|cvarname }}(tuple->value->int32) : false;
-	{% endif %}
-	{% endif %}
-{% if 'capabilities' in item %}
-#endif
-{% endif %}
-{% endif %}
-{% endmacro -%}
-
-{% macro item_init(item) %}
-{% if 'messageKey' in item and 'enamel-ignore' not in item %}
-{% if 'capabilities' in item %}
-#if {{ item['capabilities']|getdefines }}
-{% endif %}
-	pkey = prv_get_pkey(hashes, key_size, {{item|hashkey}});
-	if (pkey && persist_exists(pkey)) {
-		{% if item['type'] == 'input' %}
-		char tmp[ENAMEL_MAX_STRING_LENGTH];
-		persist_read_string(pkey, tmp, ENAMEL_MAX_STRING_LENGTH);
-		tmp[ENAMEL_MAX_STRING_LENGTH-1]=0;
-		prv_set_{{ item|getid|cvarname }}(tmp);
-		{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
-		{% if item|hasStringOptions %}
-		s_{{ item|getid|cvarname }} = (uint16_t)persist_read_int(pkey);
-		{% else %}
-		prv_set_{{ item|getid|cvarname }}(persist_read_int(pkey));
-		{% endif %}
-		{% elif item['type'] == 'color' %}
-		prv_set_{{ item|getid|cvarname }}(persist_read_int(pkey));
-		{% elif item['type'] == 'slider' %}
-		prv_set_{{ item|getid|cvarname }}(persist_read_int(pkey));
-		{% elif item['type'] == 'toggle' %}
-		prv_set_{{ item|getid|cvarname }}(persist_read_bool(pkey));
-		{% elif item['type'] == 'checkboxgroup' %}
-		persist_read_data(pkey, s_{{ item|getid|cvarname }}, {{ item['options']|length }});
-		{% endif %}
-	}
-	{% if 'defaultValue' in item %}
-	else {
-		{% if item['type'] == 'input' %}
-		prv_set_{{ item|getid|cvarname }}("{{item['defaultValue']}}");
-		{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
-		{% if item|hasStringOptions %}
-		prv_set_{{ item|getid|cvarname }}("{{item['defaultValue']}}");
-		{% else %}
-		prv_set_{{ item|getid|cvarname }}({{item['defaultValue']}});
-		{% endif %}
-		{% elif item['type'] == 'color' %}
-		{% if item['defaultValue'] is string %}
-		prv_set_{{ item|getid|cvarname }}(GColorFromHEX(0x{{item['defaultValue']}}).argb);
-		{% else %}
-		prv_set_{{ item|getid|cvarname }}(GColorFromHEX({{item['defaultValue']}}).argb);
-		{% endif %}
-		{% elif item['type'] == 'slider' %}
-		{% if 'step' in item and '.' in item['step']|string %}
-		prv_set_{{ item|getid|cvarname }}({{ (item['defaultValue'] * 10**((item['step'] - item['step']|round(0, 'floor'))|string|length - 2))|int }});
-		{% else %}
-		prv_set_{{ item|getid|cvarname }}({{item['defaultValue']|lower}});
-		{% endif %}
-		{% elif item['type'] == 'toggle' %}
-		prv_set_{{ item|getid|cvarname }}({{item['defaultValue']|lower}});
-		{% elif item['type'] == 'checkboxgroup' %}
-		{% for val in item['defaultValue'] %}
-		prv_set_{{ item|getid|cvarname }}({{ loop.index0 }}, {{ val|lower }});
-		{% endfor %}
-		{% endif %}
-	}
-	{% endif %}
-{% if 'capabilities' in item %}
-#endif
-{% endif %}
-{% endif %}
-{% endmacro -%}
-
 {% macro item_dict_size(item) %}
 {% if 'messageKey' in item and 'enamel-ignore' not in item %}
 {% if item['type'] == 'input' %}
-+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
 {% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
-+ 7 + {{ item|maxdictsize }}
+		+ 7 + {{ item|maxdictsize }}
 {% elif item['type'] == 'checkboxgroup' %}
-+ 7 + {{ item['options']|length }}
+		+ ( 7 + 4 ) * {{ item['options']|length }}
 {% elif item['type'] == 'color' or item['type'] == 'toggle' or item['type'] == 'slider' %}
-+ 7 + 4
+		+ 7 + 4
 {% endif %}
 {% endif %}
 {% endmacro -%}
 
 static uint16_t prv_get_inbound_size() {
 	return 1
-		{% for item in config %}
-		{% if item['type'] == 'section' %}
-{%- if 'capabilities' in item %}
-#if {{ item['capabilities']|getdefines }}
-{% endif -%}
-		{% for item in item['items'] %}
-{%- if 'capabilities' in item %}
-#if {{ item['capabilities']|getdefines }}
-{% endif -%}
-			{{ item_dict_size(item) }}
-{%- if 'capabilities' in item %}
-#endif
-{% endif -%}
-		{%- endfor %}
-{%- if 'capabilities' in item %}
-#endif
-{% endif -%}
-		{% else %}
-{%- if 'capabilities' in item %}
-#if {{ item['capabilities']|getdefines }}
-{% endif -%}
-			{{ item_dict_size(item) }}
-{%- if 'capabilities' in item %}
-#endif
-{% endif -%}
-		{%- endif %}
-		{% endfor %};
-}
-
-static void inbox_received_handle(DictionaryIterator *iter, void *context) {
-	Tuple *tuple = NULL;
 {% for item in config %}
 {% if item['type'] == 'section' %}
-{% if 'capabilities' in item %}
+{%- if 'capabilities' in item %}
 #if {{ item['capabilities']|getdefines }}
-{% endif %}
+{% endif -%}
 {% for item in item['items'] %}
-{{ item_in_received_handler(item) }}
+{%- if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif -%}
+{{ item_dict_size(item) }}
+{%- if 'capabilities' in item %}
+#endif
+{% endif -%}
 {%- endfor %}
 {%- if 'capabilities' in item %}
 #endif
 {% endif -%}
 {% else %}
-{{ item_in_received_handler(item) }}
+{%- if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif -%}
+{{ item_dict_size(item) }}
+{%- if 'capabilities' in item %}
+#endif
+{% endif -%}
+{%- endif %}
+{% endfor %};
+}
+
+{% macro map_messagekey(item) %}
+{% if 'messageKey' in item and 'enamel-ignore' not in item %}
+{%- if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif -%}
+{% if item['type'] == 'checkboxgroup' %}
+{% for option in item['options'] %}
+	if( key == {{ item|getmessagekey }} + {{ loop.index0 }}) return {{ item|hashkey + loop.index0 }};
+{% endfor %}
+{% else %}
+	if( key == {{ item|getmessagekey }}) return {{ item|hashkey }};
+{% endif %}
+{% endif -%}
+{%- if 'capabilities' in item %}
+#endif
+{% endif -%}
+{% endmacro -%}
+
+static uint32_t prv_map_messagekey(const uint32_t key){
+{% for item in config %}
+{% if item['type'] == 'section' %}
+{%- if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif -%}
+{% for item in item['items'] %}
+{{ map_messagekey(item) }}
+{%- endfor %}
+{%- if 'capabilities' in item %}
+#endif
+{% endif -%}
+{% else %}
+{{ map_messagekey(item) }}
 {%- endif %}
 {% endfor %}
-	if(tuple) {
-		s_config_changed = true;
+	return 0;
+}
+
+static void prv_key_update_cb(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context){
+}
+
+static void prv_inbox_received_handle(DictionaryIterator *iter, void *context) {
+	if(dict_find(iter, {{ config|getFirstMessageKey}})){
+		if(s_dict_buffer){
+			free(s_dict_buffer);
+			s_dict_buffer = NULL;
+		}
+		s_dict_size = dict_size(iter);
+		s_dict_buffer = malloc(s_dict_size);
+
+		Tuple *tuple=dict_read_first(iter);
+		while(tuple){
+			tuple->key = prv_map_messagekey(tuple->key);
+			tuple=dict_read_next(iter);
+		}
+
+		dict_write_begin(&s_dict, s_dict_buffer, s_dict_size);
+		dict_write_end(&s_dict);
+		dict_merge(&s_dict, &s_dict_size, iter, false, prv_key_update_cb, NULL);
+
 		if(s_settings_received_callback){
 			s_settings_received_callback();
 		}
+
+		s_config_changed = true;
 	}
 }
 
@@ -326,139 +251,36 @@ static uint16_t prv_load_generic_data(uint32_t startkey, void *data, uint16_t si
 	return total_r_bytes;
 }
 
-static uint32_t prv_get_pkey(uint32_t *hashes_, uint16_t size_, uint32_t hash_){
-	for(uint16_t i=0; i<size_; i++){
-		if(hashes_[i] == hash_)
-			return ENAMEL_VALUE_PKEY + i;
-	}
-	return 0;
-}
-
-
 void enamel_init(){
-	uint16_t key_size = 0;
-	uint32_t *hashes = NULL;
-	if(persist_exists(ENAMEL_PKEY)) 
+	if(persist_exists(ENAMEL_PKEY) && persist_exists(ENAMEL_DICT_PKEY)) 
 	{
-		key_size = persist_read_int(ENAMEL_PKEY);
-		hashes = malloc(key_size * sizeof(uint32_t));
-		if(hashes) {
-			prv_load_generic_data(ENAMEL_PKEY + 1, hashes, key_size * sizeof(uint32_t));
-		}
-		else {
-			key_size = 0;
-		}
+		s_dict_size = persist_read_int(ENAMEL_PKEY);
+		s_dict_buffer = malloc(s_dict_size);
+		prv_load_generic_data(ENAMEL_DICT_PKEY, s_dict_buffer, s_dict_size);
 	}
-	
-	uint32_t pkey = 0;
-{% for item in config %}
-{% if item['type'] == 'section' %}
-{% if 'capabilities' in item %}
-#if {{ item['capabilities']|getdefines }}
-{% endif %}
-{% for item in item['items'] %}
-{{ item_init(item) }}
-{%- endfor %}
-{%- if 'capabilities' in item %}
-#endif
-{% endif -%}
-{% else %}
-{{ item_init(item) }}
-{%- endif %}
-{% endfor %}
+	else {
+		s_dict_size = 0;
+		s_dict_buffer = NULL;
+	}
 
+	dict_read_begin_from_buffer(&s_dict, s_dict_buffer, s_dict_size);
+	
 	s_config_changed = false;
 	s_settings_received_callback = NULL;
-	s_event_handle = events_app_message_register_inbox_received(inbox_received_handle, NULL);
+	s_event_handle = events_app_message_register_inbox_received(prv_inbox_received_handle, NULL);
 	events_app_message_request_inbox_size(prv_get_inbound_size());
-
-	if(hashes){
-		free(hashes);
-	}
 }
-
-{% macro item_deinit(item) %}
-{% if 'messageKey' in item and 'enamel-ignore' not in item %}
-{% if 'capabilities' in item %}
-#if {{ item['capabilities']|getdefines }}
-{% endif %}
-		keys[num_keys++] = {{ item|hashkey }};
-		{% if item['type'] == 'input' %}
-		persist_write_string(pkey++, s_{{ item|getid|cvarname }});
-		{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
-		persist_write_int(pkey++, s_{{ item|getid|cvarname }});
-		{% elif item['type'] == 'toggle' %}
-		persist_write_bool(pkey++, s_{{ item|getid|cvarname }});
-		{% elif item['type'] == 'color' %}
-		persist_write_int(pkey++, s_{{ item|getid|cvarname }}.argb);
-		{% elif item['type'] == 'slider' %}
-		persist_write_int(pkey++, s_{{ item|getid|cvarname }});
-		{% elif item['type'] == 'checkboxgroup' %}
-		persist_write_data(pkey++, s_{{ item|getid|cvarname }}, {{ item['options']|length }});
-		{% else %}
-		num_keys--;
-		{% endif %}
-{% if 'capabilities' in item %}
-#endif
-{% endif %}
-{% endif %}
-{% endmacro -%}
-
-{% macro item_free(item) %}
-{% if 'messageKey' in item and 'enamel-ignore' not in item %}
-{% if 'capabilities' in item %}
-#if {{ item['capabilities']|getdefines }}
-{% endif %}
-	{% if item['type'] == 'input' %}
-	if(s_{{ item|getid|cvarname }}) free(s_{{ item|getid|cvarname }});
-	{% endif %}
-{% if 'capabilities' in item %}
-#endif
-{% endif %}
-{% endif %}
-{% endmacro -%}
 
 void enamel_deinit(){
 	if(s_config_changed){
-		uint32_t pkey = ENAMEL_VALUE_PKEY;
-		uint16_t num_keys = 0;
-		uint32_t keys[{{ config|settingscount }}];
-	
-{% for item in config %}
-{% if item['type'] == 'section' %}
-{% if 'capabilities' in item %}
-#if {{ item['capabilities']|getdefines }}
-{% endif %}
-{% for item in item['items'] %}
-{{ item_deinit(item) }}
-{%- endfor %}
-{% if 'capabilities' in item %}
-#endif
-{% endif %}
-{% else %}
-{{ item_deinit(item) }}
-{%- endif %}
-{% endfor %}
-
-		persist_write_int(ENAMEL_PKEY, num_keys);
-		prv_save_generic_data(ENAMEL_PKEY + 1, keys, num_keys * sizeof(uint32_t));
+		persist_write_int(ENAMEL_PKEY, s_dict_size);
+		prv_save_generic_data(ENAMEL_DICT_PKEY, s_dict_buffer, s_dict_size);
 	}
 
-{% for item in config %}
-{% if item['type'] == 'section' %}
-{% if 'capabilities' in item %}
-#if {{ item['capabilities']|getdefines }}
-{% endif %}
-{% for item in item['items'] %}
-{{ item_free(item) }}
-{%- endfor %}
-{% if 'capabilities' in item %}
-#endif
-{% endif %}
-{% else %}
-{{ item_free(item) }}
-{%- endif %}
-{% endfor %}
+	if(s_dict_buffer){
+		free(s_dict_buffer);
+		s_dict_buffer = NULL;
+	}
 
 	s_config_changed = false;
 	events_app_message_unsubscribe(s_event_handle);

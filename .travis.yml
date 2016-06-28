@@ -1,0 +1,6 @@
+sudo: false
+language: c
+install:
+  - pip install --user -r requirements.txt
+  - ./tests/travis-install.sh
+script: make test

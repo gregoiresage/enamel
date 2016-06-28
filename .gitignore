@@ -10,3 +10,8 @@ dist.zip
 node_modules/
 
 *.pyc
+
+tests/include/pebble
+tests/include/linked-list
+tests/generated/
+tests/linked-list.c
