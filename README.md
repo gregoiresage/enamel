@@ -1,4 +1,5 @@
-# Enamel
+# Enamel [![Build Status](https://travis-ci.org/gregoiresage/enamel.svg?branch=develop)](https://travis-ci.org/gregoiresage/enamel)&nbsp;[![MIT License](http://img.shields.io/badge/license-MIT-lightgray.svg)](./LICENSE)
+
 Enamel is a python script that generates C helpers from a [Clay](https://github.com/pebble/clay) configuration file to easily get the value of your settings.
 
 Enamel will :
