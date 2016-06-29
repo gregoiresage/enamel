@@ -63,7 +63,11 @@ GColor enamel_get_{{ item|getid|cvarname }}(){
 {% elif item['type'] == 'slider' %}
 int32_t enamel_get_{{ item|getid|cvarname }}(){
 	Tuple* tuple = dict_find(&s_dict, {{ item|hashkey }});
+	{% if 'step' in item and '.' in item['step']|string %}
 	return tuple ? tuple->value->int32 : {{ (item['defaultValue'] * 10**((item['step'] - item['step']|round(0, 'floor'))|string|length - 2))|int }};
+	{% else %}		
+	return tuple ? tuple->value->int32 : {{item['defaultValue']|lower}};		
+	{% endif %}
 }
 {% elif item['type'] == 'checkboxgroup' %}
 bool enamel_get_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Value index_){
