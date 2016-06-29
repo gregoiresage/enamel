@@ -7,3 +7,4 @@
 #define MESSAGE_KEY_flavor 7
 #define MESSAGE_KEY_slider 8
 #define MESSAGE_KEY_email 9
+#define MESSAGE_KEY_slider_nostep 10

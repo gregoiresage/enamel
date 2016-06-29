@@ -44,6 +44,7 @@ static char* default_values(void) {
   mu_assert(strcmp("grape", enamel_get_flavor()) == 0, "enamel_get_flavor wrong default value");
   mu_assert(1500 == enamel_get_slider(), "enamel_get_slider wrong default value");
   mu_assert(strcmp("", enamel_get_email()) == 0, "enamel_get_email wrong default value");
+  mu_assert(125 == enamel_get_slider_nostep(), "enamel_get_slider_nostep wrong default value");
   return 0;
 }
 
@@ -61,6 +62,7 @@ static char* save_load_no_change(void) {
   mu_assert(strcmp("grape", enamel_get_flavor()) == 0, "enamel_get_flavor wrong default value");
   mu_assert(1500 == enamel_get_slider(), "enamel_get_slider wrong default value");
   mu_assert(strcmp("", enamel_get_email()) == 0, "enamel_get_email wrong default value");
+  mu_assert(125 == enamel_get_slider_nostep(), "enamel_get_slider_nostep wrong default value");
   return 0;
 }
 
@@ -80,6 +82,7 @@ static char* changes(void) {
   dict_write_cstring(&iterator, MESSAGE_KEY_flavor, "banana");
   dict_write_int32(&iterator, MESSAGE_KEY_slider, 2000);
   dict_write_cstring(&iterator, MESSAGE_KEY_email, "hello you");
+  dict_write_int32(&iterator, MESSAGE_KEY_slider_nostep, 1250);
   dict_write_end(&iterator);
 
   s_received_callback(&iterator, NULL);
@@ -94,6 +97,7 @@ static char* changes(void) {
   mu_assert(strcmp("banana", enamel_get_flavor()) == 0, "enamel_get_flavor wrong changed value");
   mu_assert(2000 == enamel_get_slider(), "enamel_get_slider wrong changed value");
   mu_assert(strcmp("hello you", enamel_get_email()) == 0, "enamel_get_email wrong changed value");
+  mu_assert(1250 == enamel_get_slider_nostep(), "enamel_get_slider_nostep wrong default value");
 
   return 0;
 }
@@ -111,6 +115,7 @@ static char* load_changes(void) {
   mu_assert(strcmp("banana", enamel_get_flavor()) == 0, "enamel_get_flavor wrong loaded value");
   mu_assert(2000 == enamel_get_slider(), "enamel_get_slider wrong loaded value");
   mu_assert(strcmp("hello you", enamel_get_email()) == 0, "enamel_get_email wrong loaded value");
+  mu_assert(1250 == enamel_get_slider_nostep(), "enamel_get_slider_nostep wrong default value");
   
   return 0;
 }
