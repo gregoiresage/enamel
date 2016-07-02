@@ -226,7 +226,8 @@ static uint16_t prv_save_generic_data(uint32_t startkey, const void *data, uint1
 	uint16_t total_w_bytes = 0;
 	uint16_t w_bytes = 0;
 	while(offset < size){
-		w_bytes = persist_write_data(startkey + offset / PERSIST_DATA_MAX_LENGTH, data + offset, PERSIST_DATA_MAX_LENGTH);
+		w_bytes = size - offset < PERSIST_DATA_MAX_LENGTH ? size - offset : PERSIST_DATA_MAX_LENGTH;
+		w_bytes = persist_write_data(startkey + offset / PERSIST_DATA_MAX_LENGTH, data + offset, w_bytes);
 		total_w_bytes += w_bytes;
 		offset += PERSIST_DATA_MAX_LENGTH;
 	}
