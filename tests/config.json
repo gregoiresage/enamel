@@ -15,6 +15,12 @@
       "defaultValue" : true
     },
     {
+      "type": "toggle",
+      "id": "enable_background_no_default",
+      "messageKey": "enable_background_no_default",
+      "label": "Enable Background"
+    },
+    {
       "type": "color",
       "id": "background",
       "messageKey": "background",
@@ -23,10 +29,37 @@
       "sunlight": true
     },
     {
+      "type": "color",
+      "id": "background_no_default",
+      "messageKey": "background_no_default",
+      "label": "Background Color",
+      "sunlight": true
+    },
+    {
       "type": "select",
       "id": "font_size",
       "messageKey": "font_size",
       "defaultValue": "1",
+      "label": "Text Size",
+      "options": [
+        { 
+          "label": "Small", 
+          "value": 0
+        },
+        { 
+          "label": "Normal",
+          "value": 1 
+        },
+        { 
+          "label": "Large",
+          "value": 2 
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "font_size_no_default",
+      "messageKey": "font_size_no_default",
       "label": "Text Size",
       "options": [
         { 
@@ -55,6 +88,25 @@
       "messageKey": "favorite_drink",
       "label": "Favorite Drink",
       "defaultValue": "coca",
+      "options": [
+        { 
+          "label": "Water", 
+          "value": "water" 
+        },
+        { 
+          "label": "Coca", 
+          "value": "coca" 
+        },
+        { 
+          "label": "Wine", 
+          "value": "wine" 
+        }
+      ]
+    },
+    {
+      "type": "radiogroup",
+      "messageKey": "favorite_drink_no_default",
+      "label": "Favorite Drink",
       "options": [
         { 
           "label": "Water", 
@@ -133,6 +185,13 @@
       "label": "Slider no step",
       "min": 0,
       "max": 1000
+    },
+    {
+      "type": "slider",
+      "messageKey": "slider_no_default",
+      "label": "Slider no step",
+      "min": 0,
+      "max": 1000
     }
   ]
 },
@@ -146,6 +205,12 @@
     {
       "type": "input",
       "messageKey": "email",
+      "label": "Email Address",
+      "defaultValue": "gregoire@test.fr"
+    },
+    {
+      "type": "input",
+      "messageKey": "email_no_default",
       "label": "Email Address"
     }
   ]

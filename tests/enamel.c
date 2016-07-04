@@ -43,8 +43,16 @@ static char* default_values(void) {
   mu_assert(strcmp("coca", enamel_get_favorite_drink()) == 0, "enamel_get_favorite_drink wrong default value");
   mu_assert(strcmp("grape", enamel_get_flavor()) == 0, "enamel_get_flavor wrong default value");
   mu_assert(1500 == enamel_get_slider(), "enamel_get_slider wrong default value");
-  mu_assert(strcmp("", enamel_get_email()) == 0, "enamel_get_email wrong default value");
+  mu_assert(strcmp("gregoire@test.fr", enamel_get_email()) == 0, "enamel_get_email wrong default value");
   mu_assert(125 == enamel_get_slider_nostep(), "enamel_get_slider_nostep wrong default value");
+
+  mu_assert(!enamel_get_enable_background_no_default(), "enamel_get_enable_background_no_default wrong default value");
+  mu_assert(GColorFromHEX(0x0).argb == enamel_get_background_no_default().argb, "enamel_get_background_no_default wrong default value");
+  mu_assert(0 == enamel_get_font_size_no_default(), "enamel_get_font_size_no_default wrong default value");
+  mu_assert(strcmp("water", enamel_get_favorite_drink_no_default()) == 0, "enamel_get_favorite_drink_no_default wrong default value");
+  mu_assert(0 == enamel_get_slider_no_default(), "enamel_get_slider_no_default wrong default value");
+  mu_assert(strcmp("", enamel_get_email_no_default()) == 0, "enamel_get_email_no_default wrong default value");
+
   return 0;
 }
 
@@ -61,8 +69,15 @@ static char* save_load_no_change(void) {
   mu_assert(strcmp("coca", enamel_get_favorite_drink()) == 0, "enamel_get_favorite_drink wrong default value");
   mu_assert(strcmp("grape", enamel_get_flavor()) == 0, "enamel_get_flavor wrong default value");
   mu_assert(1500 == enamel_get_slider(), "enamel_get_slider wrong default value");
-  mu_assert(strcmp("", enamel_get_email()) == 0, "enamel_get_email wrong default value");
+  mu_assert(strcmp("gregoire@test.fr", enamel_get_email()) == 0, "enamel_get_email wrong default value");
   mu_assert(125 == enamel_get_slider_nostep(), "enamel_get_slider_nostep wrong default value");
+
+  mu_assert(!enamel_get_enable_background_no_default(), "enamel_get_enable_background_no_default wrong default value");
+  mu_assert(GColorFromHEX(0x0).argb == enamel_get_background_no_default().argb, "enamel_get_background_no_default wrong default value");
+  mu_assert(0 == enamel_get_font_size_no_default(), "enamel_get_font_size_no_default wrong default value");
+  mu_assert(strcmp("water", enamel_get_favorite_drink_no_default()) == 0, "enamel_get_favorite_drink_no_default wrong default value");
+  mu_assert(0 == enamel_get_slider_no_default(), "enamel_get_slider_no_default wrong default value");
+  mu_assert(strcmp("", enamel_get_email_no_default()) == 0, "enamel_get_email_no_default wrong default value");
   return 0;
 }
 
@@ -75,6 +90,7 @@ static char* changes(void) {
   dict_write_begin(&iterator, dict_buffer, sizeof(dict_buffer));
   dict_write_int32(&iterator, MESSAGE_KEY_enable_background, 0);
   dict_write_int32(&iterator, MESSAGE_KEY_background, 0xFFAA00);
+  dict_write_cstring(&iterator, MESSAGE_KEY_font_size, "2");
   dict_write_int32(&iterator, MESSAGE_KEY_favoritefood, false);
   dict_write_int32(&iterator, MESSAGE_KEY_favoritefood+1, true);
   dict_write_int32(&iterator, MESSAGE_KEY_favoritefood+2, false);
@@ -83,13 +99,20 @@ static char* changes(void) {
   dict_write_int32(&iterator, MESSAGE_KEY_slider, 2000);
   dict_write_cstring(&iterator, MESSAGE_KEY_email, "hello you");
   dict_write_int32(&iterator, MESSAGE_KEY_slider_nostep, 1250);
+
+  dict_write_int32(&iterator, MESSAGE_KEY_enable_background_no_default, 1);
+  dict_write_int32(&iterator, MESSAGE_KEY_background_no_default, 0xFFAAAA);
+  dict_write_cstring(&iterator, MESSAGE_KEY_font_size_no_default, "2");
+  dict_write_cstring(&iterator, MESSAGE_KEY_favorite_drink_no_default, "coca");
+  dict_write_int32(&iterator, MESSAGE_KEY_slider_no_default, 5432);
+  dict_write_cstring(&iterator, MESSAGE_KEY_email_no_default, "coucou");
   dict_write_end(&iterator);
 
   s_received_callback(&iterator, NULL);
 
   mu_assert(enamel_get_enable_background() == false, "enamel_get_enable_background wrong changed value");
   mu_assert(GColorFromHEX(0xFFAA00).argb == enamel_get_background().argb, "enamel_get_background wrong changed value");
-  mu_assert(1 == enamel_get_font_size(), "enamel_get_font_size wrong changed value");
+  mu_assert(2 == enamel_get_font_size(), "enamel_get_font_size wrong changed value");
   mu_assert(enamel_get_favoritefood(FAVORITEFOOD_SUSHI) == false, "enamel_get_favoritefood FAVORITEFOOD_SUSHI wrong changed value");
   mu_assert(enamel_get_favoritefood(FAVORITEFOOD_PIZZA), "enamel_get_favoritefood FAVORITEFOOD_PIZZA wrong changed value");
   mu_assert(enamel_get_favoritefood(FAVORITEFOOD_BURGERS) == false, "enamel_get_favoritefood FAVORITEFOOD_BURGERS wrong changed value");
@@ -99,6 +122,13 @@ static char* changes(void) {
   mu_assert(strcmp("hello you", enamel_get_email()) == 0, "enamel_get_email wrong changed value");
   mu_assert(1250 == enamel_get_slider_nostep(), "enamel_get_slider_nostep wrong default value");
 
+  mu_assert(enamel_get_enable_background_no_default(), "enamel_get_enable_background_no_default wrong default value");
+  mu_assert(GColorFromHEX(0xFFAAAA).argb == enamel_get_background_no_default().argb, "enamel_get_background_no_default wrong default value");
+  mu_assert(2 == enamel_get_font_size_no_default(), "enamel_get_font_size_no_default wrong default value");
+  mu_assert(strcmp("coca", enamel_get_favorite_drink_no_default()) == 0, "enamel_get_favorite_drink_no_default wrong default value");
+  mu_assert(5432 == enamel_get_slider_no_default(), "enamel_get_slider_no_default wrong default value");
+  mu_assert(strcmp("coucou", enamel_get_email_no_default()) == 0, "enamel_get_email_no_default wrong default value");
+
   return 0;
 }
 
@@ -107,7 +137,7 @@ static char* load_changes(void) {
 
   mu_assert(enamel_get_enable_background() == false, "enamel_get_enable_background wrong loaded value");
   mu_assert(GColorFromHEX(0xFFAA00).argb == enamel_get_background().argb, "enamel_get_background wrong loaded value");
-  mu_assert(1 == enamel_get_font_size(), "enamel_get_font_size wrong loaded value");
+  mu_assert(2 == enamel_get_font_size(), "enamel_get_font_size wrong loaded value");
   mu_assert(enamel_get_favoritefood(FAVORITEFOOD_SUSHI) == false, "enamel_get_favoritefood FAVORITEFOOD_SUSHI wrong loaded value");
   mu_assert(enamel_get_favoritefood(FAVORITEFOOD_PIZZA), "enamel_get_favoritefood FAVORITEFOOD_PIZZA wrong loaded value");
   mu_assert(enamel_get_favoritefood(FAVORITEFOOD_BURGERS) == false, "enamel_get_favoritefood FAVORITEFOOD_BURGERS wrong loaded value");
@@ -116,6 +146,13 @@ static char* load_changes(void) {
   mu_assert(2000 == enamel_get_slider(), "enamel_get_slider wrong loaded value");
   mu_assert(strcmp("hello you", enamel_get_email()) == 0, "enamel_get_email wrong loaded value");
   mu_assert(1250 == enamel_get_slider_nostep(), "enamel_get_slider_nostep wrong default value");
+
+  mu_assert(enamel_get_enable_background_no_default(), "enamel_get_enable_background_no_default wrong default value");
+  mu_assert(GColorFromHEX(0xFFAAAA).argb == enamel_get_background_no_default().argb, "enamel_get_background_no_default wrong default value");
+  mu_assert(2 == enamel_get_font_size_no_default(), "enamel_get_font_size_no_default wrong default value");
+  mu_assert(strcmp("coca", enamel_get_favorite_drink_no_default()) == 0, "enamel_get_favorite_drink_no_default wrong default value");
+  mu_assert(5432 == enamel_get_slider_no_default(), "enamel_get_slider_no_default wrong default value");
+  mu_assert(strcmp("coucou", enamel_get_email_no_default()) == 0, "enamel_get_email_no_default wrong default value");
   
   return 0;
 }
