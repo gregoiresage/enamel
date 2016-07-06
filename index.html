@@ -31,7 +31,8 @@
       </header>
       <section>
         <h1>
-<a id="enamel" class="anchor" href="#enamel" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Enamel</h1>
+<a id="enamel-" class="anchor" href="#enamel-" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Enamel <a href="https://travis-ci.org/gregoiresage/enamel"><img src="https://travis-ci.org/gregoiresage/enamel.svg?branch=master" alt="Build Status"></a> <a href="./LICENSE"><img src="http://img.shields.io/badge/license-MIT-lightgray.svg" alt="MIT License"></a>
+</h1>
 
 <p>Enamel is a python script that generates C helpers from a <a href="https://github.com/pebble/clay">Clay</a> configuration file to easily get the value of your settings.</p>
 
@@ -48,22 +49,18 @@
 <hr>
 
 <h1>
-<a id="demo" class="anchor" href="#demo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Demo</h1>
-
-<p>You can find a basic demo project using Enamel <a href="https://github.com/gregoiresage/demo-enamel">here</a></p>
-
-<hr>
-
-<h1>
-<a id="getting-started-pebble-wscript" class="anchor" href="#getting-started-pebble-wscript" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Getting Started (pebble wscript)</h1>
+<a id="getting-started-sdk-313" class="anchor" href="#getting-started-sdk-313" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Getting Started (SDK 3.13+)</h1>
 
 <ol>
 <li>You project must contain a valid configuration file in <code>src/js/config.json</code> (see <a href="https://github.com/pebble/clay">https://github.com/pebble/clay</a>)</li>
-<li>Extract <a href="https://github.com/gregoiresage/enamel/releases/latest">Enamel</a> at the root of your Pebble project or create a git submodule</li>
+<li>Install enamel with <code>pebble package install enamel</code>
+</li>
 <li>
 <p>Copy and paste the following line into the top of your <code>wscript</code> : </p>
 
-<div class="highlight highlight-source-python"><pre><span class="pl-k">from</span> enamel.enamel <span class="pl-k">import</span> enamel</pre></div>
+<div class="highlight highlight-source-python"><pre><span class="pl-k">import</span> sys
+sys.path.append(<span class="pl-s"><span class="pl-pds">'</span>node_modules<span class="pl-pds">'</span></span>)
+<span class="pl-k">from</span> enamel.enamel <span class="pl-k">import</span> enamel</pre></div>
 </li>
 <li>
 <p>Change the <code>build</code> of your wscript from </p>
@@ -78,23 +75,34 @@ ctx.pbl_program(<span class="pl-v">source</span><span class="pl-k">=</span>ctx.p
 <li>Launch your Pebble build : 2 files (enamel.c and enamel.h) should be generated in <code>build</code> and compiled</li>
 </ol>
 
+<blockquote>
+<p><g-emoji alias="warning" fallback-src="https://assets-cdn.github.com/images/icons/emoji/unicode/26a0.png">⚠️</g-emoji><br>
+The first time you launch a build, you will get an error message because Jinja2 module is missing.<br>
+Just follow the instructions to fix your environment.</p>
+</blockquote>
+
 <h1>
-<a id="getting-started-python" class="anchor" href="#getting-started-python" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Getting Started (python)</h1>
+<a id="getting-started-cloudpebble" class="anchor" href="#getting-started-cloudpebble" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Getting Started (CloudPebble)</h1>
 
-<p>If you can't modify the wscript (Cloudpebble development) you can call directly the python script.</p>
+<p>In the CloudPebble environment, you can't modify the wscript so you need to call directly the python script.</p>
 
-<p>Enamel needs the Jinja2 module for the code generation.
-Install the dependency with </p>
+<ol>
+<li><p>Under Dependencies in the project navigation, enter <code>enamel</code> as the Package Name and ^1.0.0 for the Version. You may use any specific version you like, however using ^1.0.0 will ensure you receive all minor version updates.</p></li>
+<li><p>Copy the content of your Clay's <code>config.js</code> file into a local file (<code>local_config.js</code>)</p></li>
+<li>
+<p>Install the python dependencies for the code generation</p>
 
-<pre><code>pip install Jinja2
+<pre><code>pip install -r requirements.txt
 </code></pre>
+</li>
+<li>
+<p>Call the script to generate the enamel files</p>
 
-<p>The following command will generate 2 files (enamel.c and enamel.h), you just need to copy them in your project</p>
-
-<pre><code>python enamel.py --appinfo /path/to/your/appinfo.json --config /path/to/your/config.json 
+<pre><code>python enamel.py --config /path/to/local_config.js 
 </code></pre>
-
-<p>Call <code>python enamel.py --help</code> for help</p>
+</li>
+<li><p>Copy the 2 generated files in your CloudPebble project</p></li>
+</ol>
 
 <hr>
 
@@ -107,14 +115,18 @@ Install the dependency with </p>
 <li>
 <p>Include <code>enamel.h</code> in your c file : </p>
 
-<div class="highlight highlight-source-c"><pre>#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">"</span>enamel.h<span class="pl-pds">"</span></span></pre></div>
+<div class="highlight highlight-source-c"><pre>#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">"</span>enamel.h<span class="pl-pds">"</span></span>
+#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">&lt;</span>pebble-events/pebble-events.h<span class="pl-pds">&gt;</span></span></pre></div>
 </li>
 <li>
-<p>Initialize enamel in your <code>init</code> function : </p>
+<p>Initialize enamel in your <code>init</code> function and call <code>events_app_message_open()</code> after any other libraries you need to init.</p>
 
 <div class="highlight highlight-source-c"><pre><span class="pl-k">static</span> <span class="pl-k">void</span> <span class="pl-en">init</span>(<span class="pl-k">void</span>) {
   <span class="pl-c">// Initialize Enamel to register App Message handlers and restores settings</span>
-  <span class="pl-c1">enamel_init</span>(<span class="pl-c1">0</span>, <span class="pl-c1">0</span>);
+  <span class="pl-c1">enamel_init</span>();
+
+  <span class="pl-c">// call pebble-events app_message_open function</span>
+  <span class="pl-c1">events_app_message_open</span>(); 
 
   ...
 }</pre></div>
@@ -130,11 +142,11 @@ Install the dependency with </p>
 }</pre></div>
 </li>
 <li>
-<p>(Optional) Register a custom <code>in_received_handler</code> in your <code>init</code>. <br>This handler will be automatically called by enamel when a setting is received.</p>
+<p>(Optional) Register a callback after <code>enamel_init</code> that will be automatically called when the settings are received.</p>
 
-<div class="highlight highlight-source-c"><pre><span class="pl-k">static</span> <span class="pl-k">void</span> <span class="pl-en">in_received_handler</span>(DictionaryIterator *iter, <span class="pl-k">void</span> *context) {
-  <span class="pl-c1">APP_LOG</span>(<span class="pl-c1">0</span>, <span class="pl-s"><span class="pl-pds">"</span>Settings received <span class="pl-c1">%d</span><span class="pl-pds">"</span></span>, <span class="pl-c1">get_myinteger</span>());
-  <span class="pl-c1">window_set_background_color</span>(window, <span class="pl-c1">get_background</span>());
+<div class="highlight highlight-source-c"><pre><span class="pl-k">static</span> <span class="pl-k">void</span> <span class="pl-en">enamel_register_settings_received_cb</span>(){
+  <span class="pl-c1">APP_LOG</span>(<span class="pl-c1">0</span>, <span class="pl-s"><span class="pl-pds">"</span>Settings received <span class="pl-c1">%d</span><span class="pl-pds">"</span></span>, <span class="pl-c1">enamel_get_myinteger</span>());
+  <span class="pl-c1">window_set_background_color</span>(window, <span class="pl-c1">enamel_get_background</span>());
   <span class="pl-c">// do what you want here </span>
   <span class="pl-c">// you will probably udpate your textlayers, colors, ... with the new settings</span>
   <span class="pl-c">// and mark your layers dirty</span>
@@ -144,10 +156,13 @@ Install the dependency with </p>
 
 <span class="pl-k">static</span> <span class="pl-k">void</span> <span class="pl-en">init</span>(<span class="pl-k">void</span>) {
   <span class="pl-c">// Initialize Enamel to register App Message handlers and restores settings</span>
-  <span class="pl-c1">enamel_init</span>(<span class="pl-c1">0</span>, <span class="pl-c1">0</span>);
+  <span class="pl-c1">enamel_init</span>();
 
-  <span class="pl-c">// Register our custom receive handler</span>
-  <span class="pl-c1">enamel_register_custom_inbox_received</span>(in_received_handler);
+  <span class="pl-c">// Register our callback</span>
+  <span class="pl-c1">enamel_register_settings_received</span>(enamel_register_settings_received_cb);
+
+  <span class="pl-c">// call pebble-events app_message_open function</span>
+  <span class="pl-c1">events_app_message_open</span>(); 
 
   ...
 }</pre></div>
@@ -155,11 +170,11 @@ Install the dependency with </p>
 <li>
 <p>Get the value of your setting with :</p>
 
-<div class="highlight highlight-source-c"><pre><span class="pl-en">get_Mysetting</span>(); <span class="pl-c">// where 'Mysetting' is an appKey in your configuration file</span></pre></div>
-</li>
-</ol>
+<div class="highlight highlight-source-c"><pre><span class="pl-en">enamel_get_Mysetting</span>(); <span class="pl-c">// where 'Mysetting' is a messageKey in your configuration file</span></pre></div>
 
 <hr>
+</li>
+</ol>
 
 <h1>
 <a id="enamel-api" class="anchor" href="#enamel-api" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Enamel API</h1>
@@ -176,32 +191,22 @@ Install the dependency with </p>
 </thead>
 <tbody>
 <tr>
-<td><code>void enamel_init(const uint32_t size_inbound, const uint32_t size_outbound)</code></td>
-<td>Initialize Enamel. <br>If <code>size_inbound</code> is <code>0</code>, Enamel will calculate the inbound size automatically for you</td>
+<td><code>void enamel_init()</code></td>
+<td>Initialize Enamel and read settings from persistant storage</td>
 </tr>
 <tr>
 <td><code>void enamel_deinit()</code></td>
 <td>Deinitialize Enamel and save the settings in the persistant storage</td>
 </tr>
 <tr>
-<td><code>void enamel_register_custom_inbox_received( AppMessageInboxReceived received_callback )</code></td>
-<td>Register a custom received callback called when a setting is received</td>
-</tr>
-<tr>
-<td><code>&lt;type&gt; get_appKeyId()</code></td>
-<td>Return the value for the setting <code>appKeyId</code>
+<td><code>&lt;type&gt; enamel_get_&lt;messageKeyId&gt;()</code></td>
+<td>Return the value for the setting <code>messageKeyId</code>
 </td>
 </tr>
 <tr>
-<td><code>&lt;type&gt; get_appKeyId(uint16_t index_)</code></td>
+<td><code>bool enamel_get_&lt;messageKeyId&gt;(uint16_t index_)</code></td>
 <td>
-<em>Only relevant for <code>checkboxgroup</code></em>. <br>Return the value at given index for the setting <code>appKeyId</code>
-</td>
-</tr>
-<tr>
-<td><code>uint16_t get_appKeyId_count()</code></td>
-<td>
-<em>Only relevant for <code>checkboxgroup</code></em>. <br>Return the number of values for the setting <code>appKeyId</code>
+<em>Only relevant for <code>checkboxgroup</code></em>. <br>Return the value at given index for the setting <code>messageKeyId</code>
 </td>
 </tr>
 </tbody>
@@ -219,7 +224,7 @@ Install the dependency with </p>
 </thead>
 <tbody>
 <tr>
-<td><code>heading/text/input</code></td>
+<td><code>input</code></td>
 <td><code>char*</code></td>
 </tr>
 <tr>
@@ -238,9 +243,7 @@ Install the dependency with </p>
 </tr>
 <tr>
 <td><code>checkboxgroup</code></td>
-<td>
-<code>char*</code> or <code>enum</code>
-</td>
+<td><code>bool</code></td>
 </tr>
 <tr>
 <td><code>slider</code></td>
@@ -250,7 +253,7 @@ Install the dependency with </p>
 </table>
 
 <h3>
-<a id="special-case-for-select-radiogroup-and-checkboxgroup" class="anchor" href="#special-case-for-select-radiogroup-and-checkboxgroup" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Special case for <code>select</code>, <code>radiogroup</code> and <code>checkboxgroup</code>
+<a id="special-case-for-select-radiogroup" class="anchor" href="#special-case-for-select-radiogroup" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Special case for <code>select</code>, <code>radiogroup</code>
 </h3>
 
 <p>If the value of the options are <code>string</code> in the <code>config.json</code>, Enamel will generate a <code>char*</code> getter</p>
@@ -261,7 +264,7 @@ Install the dependency with </p>
 
 <div class="highlight highlight-source-json"><pre>{
   <span class="pl-s"><span class="pl-pds">"</span>type<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>radiogroup<span class="pl-pds">"</span></span>,
-  <span class="pl-s"><span class="pl-pds">"</span>appKey<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>favorite_food<span class="pl-pds">"</span></span>,
+  <span class="pl-s"><span class="pl-pds">"</span>messageKey<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>favorite_food<span class="pl-pds">"</span></span>,
   <span class="pl-s"><span class="pl-pds">"</span>label<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>Favorite Food<span class="pl-pds">"</span></span>,
   <span class="pl-s"><span class="pl-pds">"</span>defaultValue<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>1<span class="pl-pds">"</span></span>,
   <span class="pl-s"><span class="pl-pds">"</span>options<span class="pl-pds">"</span></span>: [
@@ -287,11 +290,11 @@ Install the dependency with </p>
     FAVORITE_FOOD_PIZZA = <span class="pl-c1">1</span>,
     FAVORITE_FOOD_BURGER = <span class="pl-c1">2</span>,
 } FAVORITE_FOODValue;
-FAVORITE_FOODValue <span class="pl-en">get_favorite_food</span>();</pre></div>
+FAVORITE_FOODValue <span class="pl-en">enamel_get_favorite_food</span>();</pre></div>
 
 <p>You can then easily code switch case for this setting</p>
 
-<div class="highlight highlight-source-c"><pre><span class="pl-k">switch</span>(get_favorite_food()){
+<div class="highlight highlight-source-c"><pre><span class="pl-k">switch</span>(enamel_get_favorite_food()){
  <span class="pl-k">case</span> FAVORITE_FOOD_SUSHI : <span class="pl-k">break</span>; <span class="pl-c">//do something</span>
  <span class="pl-k">case</span> FAVORITE_FOOD_PIZZA : <span class="pl-k">break</span>; <span class="pl-c">//do something</span>
  <span class="pl-k">case</span> FAVORITE_FOOD_BURGER : <span class="pl-k">break</span>; <span class="pl-c">//do something</span>
