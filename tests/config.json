@@ -212,6 +212,15 @@
       "type": "input",
       "messageKey": "email_no_default",
       "label": "Email Address"
+    },
+    {
+      "type": "input",
+      "messageKey": "input_time",
+      "label": "Time",
+      "defaultValue": "23:56",
+      "attributes" : {
+        "type" : "time"
+      }
     }
   ]
 },

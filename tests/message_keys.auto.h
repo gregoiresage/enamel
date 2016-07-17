@@ -15,3 +15,4 @@
 #define MESSAGE_KEY_favorite_drink_no_default 14
 #define MESSAGE_KEY_slider_no_default 15
 #define MESSAGE_KEY_email_no_default 16
+#define MESSAGE_KEY_input_time 17
