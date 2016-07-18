@@ -28,7 +28,11 @@ typedef enum {
 {% elif item['type'] == 'toggle' %}
 bool enamel_get_{{ item|getid|cvarname }}();
 {% elif item['type'] == 'input' %}
+{% if 'attributes' in item and item['attributes']['type'] == 'time' %}
+uint32_t enamel_get_{{ item|getid|cvarname }}();
+{% else %}
 const char* enamel_get_{{ item|getid|cvarname }}();
+{% endif %}
 {% elif item['type'] == 'color' %}
 GColor enamel_get_{{ item|getid|cvarname }}();
 {% elif item['type'] == 'checkboxgroup' %}

@@ -47,10 +47,22 @@ const char* enamel_get_{{ item|getid|cvarname }}(){
 }
 {% endif %}
 {% elif item['type'] == 'input' %}
+{% if 'attributes' in item and item['attributes']['type'] == 'time' %}
+uint32_t enamel_get_{{ item|getid|cvarname }}(){
+	Tuple* tuple = dict_find(&s_dict, {{ item|hashkey }});
+	char* value =  tuple ? tuple->value->cstring : "{{ item['defaultValue'] if 'defaultValue' in item else '00:00:00' }}";
+	uint32_t sec = atoi(value) * 3600 + atoi(value+3) * 60;
+	if(strlen(value) > 6){
+		sec += atoi(value+6);
+	}
+	return sec;
+}
+{% else %}
 const char* enamel_get_{{ item|getid|cvarname }}(){
 	Tuple* tuple = dict_find(&s_dict, {{ item|hashkey }});
 	return tuple ? tuple->value->cstring : "{{ item['defaultValue'] if 'defaultValue' in item else '' }}";
 }
+{% endif %}
 {% elif item['type'] == 'color' %}
 GColor enamel_get_{{ item|getid|cvarname }}(){
 	Tuple* tuple = dict_find(&s_dict, {{ item|hashkey }});
