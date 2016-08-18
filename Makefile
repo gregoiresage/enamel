@@ -10,7 +10,7 @@ CC_TEST=arm-none-eabi-gcc
 CFLAGS=-std=c11
 AR=arm-none-eabi-ar
 endif
-CINCLUDES=-I $(PEBBLE_HEADERS) -I tests/ -I tests/generated/ -I tests/include/ -I tests/include/linked-list
+CINCLUDES=-I $(PEBBLE_HEADERS) -I tests/ -I tests/generated/ -I tests/include/ -I tests/include/@smallstoneapps/linked-list
 
 TEST_FILES=tests/enamel.c
 SRC_FILES=tests/generated/enamel.c tests/linked-list.c
