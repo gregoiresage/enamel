@@ -78,8 +78,10 @@ void enamel_init();
 
 void enamel_deinit();
 
-typedef void(EnamelSettingsReceivedCallback)(void);
+typedef void* EventHandle;
+typedef void(EnamelSettingsReceivedHandler)(void* context);
 
-void enamel_register_settings_received(EnamelSettingsReceivedCallback *callback);
+EventHandle enamel_settings_received_subscribe(EnamelSettingsReceivedHandler *handler, void *context);
+void enamel_settings_received_unsubscribe(EventHandle handle);
 
 #endif

@@ -6,6 +6,7 @@ Enamel will :
 * handle AppMessages automatically (app_message_open, handler registration, ...)
 * save/load the value of the settings in the persistant storage automatically
 * provide a getter for each of your settings
+* notify subscribers when settings are received from Clay
 
 You can focus on your watchapp/face, Enamel will do the rest !
 
@@ -91,15 +92,24 @@ In the CloudPebble environment, you can't modify the wscript so you need to call
     enamel_deinit();
   }
   ```
-5. (Optional) Register a callback after `enamel_init` that will be automatically called when the settings are received.
+5. (Optional) Subscribe with a handler after `enamel_init` that will be automatically called when the settings are received. Multiple subscribers are supported. Do not forget to unsubscribe before calling `enamel_deinit`!
 
   ``` c
-  static void enamel_register_settings_received_cb(){
+  static EventHandle s_window_event_handle;
+  static EventHandle s_text_layer_event_handle;
+
+  ...
+
+  static void enamel_settings_received_window_handler(void *context){
     APP_LOG(0, "Settings received %d", enamel_get_myinteger());
+    Window *window = (Window *) context;
     window_set_background_color(window, enamel_get_background());
-    // do what you want here 
-    // you will probably udpate your textlayers, colors, ... with the new settings
-    // and mark your layers dirty
+  }
+
+  static void enamel_settings_received_text_layer_handler(void *context){
+    APP_LOG(0, "Settings received %d", enamel_get_myinteger());
+    TextLayer *text_layer = (TextLayer *) context;
+    text_layer_set_text_color(text_layer, enamel_get_foreground());
   }
   
   ...
@@ -108,13 +118,26 @@ In the CloudPebble environment, you can't modify the wscript so you need to call
     // Initialize Enamel to register App Message handlers and restores settings
     enamel_init();
 
-    // Register our callback
-    enamel_register_settings_received(enamel_register_settings_received_cb);
+    // Subscribe a handler for a window
+    s_window_event_handle = enamel_settings_received_subscribe(enamel_settings_received_window_handler, window);
+
+    // Subscribe a handler for a text layer
+    s_text_layer_event_handle = enamel_settings_received_subscribe(enamel_settings_received_text_layer_handler, text_layer);
     
     // call pebble-events app_message_open function
     events_app_message_open(); 
     
     ...
+  }
+
+  static void deinit(void) {
+      // Unsubscribe from Enamel events
+      enamel_settings_received_unsubscribe(s_window_event_handle);
+      enamel_settings_received_unsubscribe(s_text_layer_event_handle);
+
+      enamel_deinit();
+
+      ...
   }
   ```
 6. Get the value of your setting with :

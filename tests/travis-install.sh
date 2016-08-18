@@ -13,9 +13,9 @@ touch tests/include/pebble/pebble_warn_unsupported_functions.h
 rm $SDK_ZIP_NAME
 rm -r sdk-core
 
-mkdir -p tests/include/linked-list
+mkdir -p tests/include/@smallstoneapps/linked-list
 wget https://raw.githubusercontent.com/smallstoneapps/linked-list/master/include/linked-list.h
-mv linked-list.h tests/include/linked-list/linked-list.h
+mv linked-list.h tests/include/@smallstoneapps/linked-list/linked-list.h
 wget https://raw.githubusercontent.com/smallstoneapps/linked-list/master/src/c/linked-list.c
 mv linked-list.c tests/linked-list.c
 
