@@ -1,5 +1,5 @@
 #include <pebble.h>
-#include <linked-list/linked-list.h>
+#include <@smallstoneapps/linked-list/linked-list.h>
 #include "constants.h"
 
 static LinkedRoot* s_persist_root = NULL;

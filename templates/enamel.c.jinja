@@ -3,6 +3,7 @@
  */
 
 #include <pebble.h>
+#include <@smallstoneapps/linked-list/linked-list.h>
 #include <pebble-events/pebble-events.h>
 #include "enamel.h"
 
@@ -13,8 +14,14 @@
 #define ENAMEL_PKEY 3000000000
 #define ENAMEL_DICT_PKEY (ENAMEL_PKEY+1)
 
+typedef struct {
+	EnamelSettingsReceivedHandler *handler;
+	void *context;
+} SettingsReceivedState;
+
+static LinkedRoot *s_handler_list;
+
 static EventHandle s_event_handle;
-static EnamelSettingsReceivedCallback *s_settings_received_callback; 
 
 static DictionaryIterator s_dict;
 static uint8_t* s_dict_buffer = NULL;
@@ -210,6 +217,12 @@ static uint32_t prv_map_messagekey(const uint32_t key){
 static void prv_key_update_cb(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context){
 }
 
+static bool prv_each_settings_received(void *this, void *context) {
+	SettingsReceivedState *state=(SettingsReceivedState *)this;
+	state->handler(state->context);
+	return true;
+}
+
 static void prv_inbox_received_handle(DictionaryIterator *iter, void *context) {
 	if(dict_find(iter, {{ config|getFirstMessageKey}})){
 		if(s_dict_buffer){
@@ -229,8 +242,8 @@ static void prv_inbox_received_handle(DictionaryIterator *iter, void *context) {
 		dict_write_end(&s_dict);
 		dict_merge(&s_dict, &s_dict_size, iter, false, prv_key_update_cb, NULL);
 
-		if(s_settings_received_callback){
-			s_settings_received_callback();
+		if(s_handler_list){
+			linked_list_foreach(s_handler_list, prv_each_settings_received, NULL);
 		}
 
 		s_config_changed = true;
@@ -287,7 +300,6 @@ void enamel_init(){
 	dict_read_begin_from_buffer(&s_dict, s_dict_buffer, s_dict_size);
 	
 	s_config_changed = false;
-	s_settings_received_callback = NULL;
 	s_event_handle = events_app_message_register_inbox_received(prv_inbox_received_handle, NULL);
 	events_app_message_request_inbox_size(prv_get_inbound_size());
 }
@@ -305,10 +317,31 @@ void enamel_deinit(){
 
 	s_config_changed = false;
 	events_app_message_unsubscribe(s_event_handle);
-	s_settings_received_callback = NULL;
 }
 
-void enamel_register_settings_received(EnamelSettingsReceivedCallback *callback){
-	s_settings_received_callback = callback;
+EventHandle enamel_settings_received_subscribe(EnamelSettingsReceivedHandler *handler, void *context) {
+	if (!s_handler_list) {
+		s_handler_list = linked_list_create_root();
+	}
+
+	SettingsReceivedState *this = malloc(sizeof(SettingsReceivedState));
+	this->handler = handler;
+	this->context = context;
+	linked_list_append(s_handler_list, this);
+
+	return this;
 }
 
+void enamel_settings_received_unsubscribe(EventHandle handle) {
+	int16_t index = linked_list_find(s_handler_list, handle);
+	if (index == -1) {
+		return;
+	}
+
+	free(linked_list_get(s_handler_list, index));
+	linked_list_remove(s_handler_list, index);
+	if (linked_list_count(s_handler_list) == 0) {
+		free(s_handler_list);
+		s_handler_list = NULL;
+	}
+}

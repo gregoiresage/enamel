@@ -12,6 +12,6 @@ node_modules/
 *.pyc
 
 tests/include/pebble
-tests/include/linked-list
+tests/include/@smallstoneapps
 tests/generated/
 tests/linked-list.c
