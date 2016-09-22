@@ -189,9 +189,9 @@ static uint16_t prv_get_inbound_size() {
 {% else %}
 	if( key == {{ item|getmessagekey }}) return {{ item|hashkey }};
 {% endif %}
-{% endif -%}
 {%- if 'capabilities' in item %}
 #endif
+{% endif -%}
 {% endif -%}
 {% endmacro -%}
 
@@ -201,8 +201,8 @@ static uint32_t prv_map_messagekey(const uint32_t key){
 {%- if 'capabilities' in item %}
 #if {{ item['capabilities']|getdefines }}
 {% endif -%}
-{% for item in item['items'] %}
-{{ map_messagekey(item) }}
+{% for item2 in item['items'] %}
+{{ map_messagekey(item2) }}
 {%- endfor %}
 {%- if 'capabilities' in item %}
 #endif
