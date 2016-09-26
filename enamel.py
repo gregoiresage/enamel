@@ -118,7 +118,7 @@ def getFirstMessageKey(settings):
 def removeComments(string):
     """From http://stackoverflow.com/questions/2319019/using-regex-to-remove-comments-from-source-files"""
     string = re.sub(re.compile("/\*.*?\*/",re.DOTALL ) ,"" ,string) # remove all occurance streamed comments (/*COMMENT */) from string
-    string = re.sub(re.compile("//.*?\n" ) ,"" ,string) # remove all occurance singleline comments (//COMMENT\n ) from string
+    string = re.sub(re.compile("^\s+//.*?\n" ) ,"" ,string) # remove all occurance singleline comments (//COMMENT\n ) from string
     return string
 
 def generate(configFile='src/js/config.json', outputDir='src/generated'):
