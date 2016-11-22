@@ -104,17 +104,6 @@ def maxdictsize(item):
             size = max(size, len(str(option['value'])) + 1)
     return size
 
-def getFirstMessageKey(settings):
-    count = 0
-    for setting in settings :
-        if setting['type'] == 'section':
-            messageKey = getFirstMessageKey(setting['items'])
-            if messageKey != '' :
-                return messageKey
-        elif 'messageKey' in setting :
-            return getmessagekey(setting)
-    return ''
-
 def removeComments(string):
     """From http://stackoverflow.com/questions/2319019/using-regex-to-remove-comments-from-source-files"""
     string = re.sub(re.compile("/\*.*?\*/",re.DOTALL ) ,"" ,string) # remove all occurance streamed comments (/*COMMENT */) from string
@@ -140,7 +129,6 @@ def generate(configFile='src/js/config.json', outputDir='src/generated'):
     env.filters['settingscount'] = settingscount
     env.filters['getOptionArray'] = getOptionArray
     env.filters['hasStringOptions'] = hasStringOptions
-    env.filters['getFirstMessageKey'] = getFirstMessageKey
 
     # load config file
     config_content=open(configFile)

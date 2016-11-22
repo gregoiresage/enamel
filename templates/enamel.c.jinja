@@ -223,8 +223,46 @@ static bool prv_each_settings_received(void *this, void *context) {
 	return true;
 }
 
+
+{% macro is_setting_message(item) %}
+{% if 'messageKey' in item and 'enamel-ignore' not in item %}
+{%- if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif -%}
+{% if item['type'] == 'checkboxgroup' %}
+{% for option in item['options'] %}
+	if( dict_find(iter, {{ item|getmessagekey }} + {{ loop.index0 }}) ) return true;
+{% endfor %}
+{% else %}
+	if( dict_find(iter, {{ item|getmessagekey }}) ) return true;
+{% endif %}
+{%- if 'capabilities' in item %}
+#endif
+{% endif -%}
+{% endif -%}
+{% endmacro -%}
+
+static bool prv_is_setting_message(const DictionaryIterator *iter){
+{% for item in config %}
+{% if item['type'] == 'section' %}
+{%- if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif -%}
+{% for item2 in item['items'] %}
+{{ is_setting_message(item2) }}
+{%- endfor %}
+{%- if 'capabilities' in item %}
+#endif
+{% endif -%}
+{% else %}
+{{ is_setting_message(item) }}
+{%- endif %}
+{% endfor %}
+	return false;	
+}
+
 static void prv_inbox_received_handle(DictionaryIterator *iter, void *context) {
-	if(dict_find(iter, {{ config|getFirstMessageKey}})){
+	if( prv_is_setting_message(iter) ){
 		if(s_dict_buffer){
 			free(s_dict_buffer);
 			s_dict_buffer = NULL;
