@@ -24,7 +24,7 @@ if sys.version_info[0] >= 3:
 
 def cvarname(name):
     """Convert a string to a valid c variable name (remove space,commas,slashes/...)."""
-    return re.sub(r'([^\w\s]| )', '_', name)
+    return re.sub(r'([^a-zA-Z0-9])', '_', name)
 
 def getid(item):
     """Return an identifier for the given config item, takes 'id' if it exists or 'messageKey'"""
