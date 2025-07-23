@@ -13,7 +13,7 @@ except ImportError as e:
         message = 'Jinja2 module is missing, you probably forgot to patch your current sdk\n'
         message += 'Fix the problem by executing the following command and relaunch your build:\n\n'
         message += '"%s/bin/python" -m pip install -r "%s/requirements.txt"\n' % (sys.prefix, os.path.dirname(os.path.abspath(__file__)))
-        print message
+        print(message)
         sys.exit(-1)
     else :
         raise e
@@ -146,7 +146,7 @@ def generate(configFile='src/js/config.json', outputDir='src/generated'):
 
     # render templates
     for template in ['enamel.h.jinja', 'enamel.c.jinja'] : 
-    	extension = ".h" if template.endswith('h.jinja') else ".c" 
+        extension = ".h" if template.endswith('h.jinja') else ".c" 
         f = open("%s/%s%s" % (outputDir, 'enamel', extension), 'w')
         f.write(env.get_template(template).render({'config' : config_content}))
         f.close()
