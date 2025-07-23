@@ -17,6 +17,10 @@ except ImportError as e:
         sys.exit(-1)
     else :
         raise e
+    
+import sys
+if sys.version_info[0] >= 3:
+    unicode = str
 
 def cvarname(name):
     """Convert a string to a valid c variable name (remove space,commas,slashes/...)."""
