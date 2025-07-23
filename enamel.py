@@ -56,7 +56,7 @@ def getdefines(capabilities):
         "DISPLAY_260x260_ROUND" : "(defined(PBL_ROUND) && defined(PBL_PLATFORM_GABBRO))",
     }
     allcap2defines = {}
-    for key, value in cap2defines.iteritems():
+    for key, value in cap2defines.items():
         allcap2defines[key]         = value
         allcap2defines['NOT_'+key]  = '!' + value
     return ' && '.join(allcap2defines[cap] for cap in capabilities) 
