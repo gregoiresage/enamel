@@ -40,6 +40,8 @@ def getdefines(capabilities):
         "PLATFORM_CHALK"        : "defined(PBL_PLATFORM_CHALK)",
         "PLATFORM_DIORITE"      : "defined(PBL_PLATFORM_DIORITE)",
         "PLATFORM_EMERY"        : "defined(PBL_PLATFORM_EMERY)",
+        "PLATFORM_FLINT"        : "defined(PBL_PLATFORM_FLINT)",
+        "PLATFORM_GABBRO"       : "defined(PBL_PLATFORM_GABBRO)",
         "BW"                    : "defined(PBL_BW)",
         "COLOR"                 : "defined(PBL_COLOR)",
         "MICROPHONE"            : "defined(PBL_MICROPHONE)",
@@ -51,6 +53,7 @@ def getdefines(capabilities):
         "DISPLAY_144x168"       : "(defined(PBL_RECT) && !defined(PBL_PLATFORM_EMERY))",
         "DISPLAY_180x180_ROUND" : "(defined(PBL_ROUND) && defined(PBL_PLATFORM_CHALK))",
         "DISPLAY_200x228"       : "(defined(PBL_RECT) && defined(PBL_PLATFORM_EMERY))",
+        "DISPLAY_260x260_ROUND" : "(defined(PBL_ROUND) && defined(PBL_PLATFORM_GABBRO))",
     }
     allcap2defines = {}
     for key, value in cap2defines.iteritems():
